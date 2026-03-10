@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500;600&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-width: 320px;
+}
+
+/* Grid background pattern */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(rgba(0, 255, 64, 0.067) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 64, 0.088) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (max-width: 600px) {
+  body::before {
+    background-size: 30px 30px;
+  }
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 64, 0.632);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 64, 0.641);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(0, 255, 64, 0.618);
+  color: #ffffff;
+}
+
+/* Animations */
+@keyframes pulse-green {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.blink {
+  animation: pulse-green 1.5s ease-in-out infinite;
+}
+
+/* Prevent horizontal overflow on all elements */
+img,
+video,
+svg,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
