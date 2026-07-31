@@ -9,7 +9,7 @@ const Home = () => {
         <>
             <HeroSection />
             <ServicesSection />
-            <ProjectsSection />
+            {/* <ProjectsSection /> */}
             <TechStackSection />
         </>
     );

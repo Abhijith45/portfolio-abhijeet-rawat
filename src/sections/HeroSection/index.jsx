@@ -192,7 +192,7 @@ const HeroSection = () => {
                                     mb: { xs: 3, md: 4 },
                                 }}
                             >
-                                <Button
+                                {/* <Button
                                     onClick={handleViewProjects}
                                     variant="contained"
                                     disableRipple
@@ -214,7 +214,7 @@ const HeroSection = () => {
                                     }}
                                 >
                                     View Projects
-                                </Button>
+                                </Button> */}
                                 <Button
                                     disableRipple
                                     disableElevation

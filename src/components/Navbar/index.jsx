@@ -19,13 +19,16 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import portfolioFavicon from '../../assets/portfolio_favicon.png';
 
 const navItems = [
     { label: 'Home', path: '/' },
     { label: 'About', path: '/about' },
-    { label: 'Projects', path: '/#projects' },
+    // { label: 'Projects', path: '/#projects' },
     { label: 'Contact', path: '/contact' },
 ];
+
+const resumeUrl = import.meta.env.RESUME_URL || import.meta.env.VITE_RESUME_URL || '/resume.pdf';
 
 const Navbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -95,28 +98,17 @@ const Navbar = () => {
                             }}
                         >
                             <Box
+                                component="img"
+                                src={portfolioFavicon}
+                                alt="Abhijeet Rawat logo"
                                 sx={{
-                                    width: 42,
-                                    height: 28,
-                                    borderRadius: '4px',
-                                    background: '#00FF41',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
+                                    width: { xs: 36, sm: 44, md: 52 },
+                                    height: 'auto',
+                                    maxWidth: '100%',
+                                    objectFit: 'contain',
+                                    display: 'block',
                                 }}
-                            >
-                                <Typography
-                                    sx={{
-                                        fontSize: '1.25rem',
-                                        fontWeight: 800,
-                                        color: '#000',
-                                        fontFamily: 'Fira Code, monospace',
-                                        lineHeight: 1,
-                                    }}
-                                >
-                                    AR
-                                </Typography>
-                            </Box>
+                            />
                         </Box>
                     </motion.div>
 
@@ -148,8 +140,10 @@ const Navbar = () => {
                                 ))}
                                 <Button
                                     variant="contained"
-                                    href="/resume.pdf"
-                                    download
+                                    component="a"
+                                    href={resumeUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
                                     sx={{
                                         ml: 2,
                                         background: '#00FF41',
@@ -230,6 +224,10 @@ const Navbar = () => {
                     <Button
                         variant="contained"
                         fullWidth
+                        component="a"
+                        href={resumeUrl}
+                        target="_blank"
+                        rel="noreferrer"
                         sx={{ mt: 3, background: '#00FF41', color: '#000', fontWeight: 700 }}
                     >
                         Resume
