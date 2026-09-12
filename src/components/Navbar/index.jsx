@@ -28,14 +28,27 @@ const navItems = [
     { label: 'Contact', path: '/contact' },
 ];
 
-const resumeUrl = import.meta.env.RESUME_URL || import.meta.env.VITE_RESUME_URL || '/resume.pdf';
+const defaultResumeUrl = import.meta.env.RESUME_URL || import.meta.env.VITE_RESUME_URL || '/resume.pdf';
 
 const Navbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [resumeUrl, setResumeUrl] = useState(defaultResumeUrl);
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+    useEffect(() => {
+        import('../../services/api').then(({ resumeApi }) => {
+            resumeApi.getActive()
+                .then((res) => {
+                    if (res.data?.data?.downloadUrl) {
+                        setResumeUrl(res.data.data.downloadUrl);
+                    }
+                })
+                .catch(() => {});
+        });
+    }, []);
 
     const scrolled = useScrollTrigger({
         disableHysteresis: true,

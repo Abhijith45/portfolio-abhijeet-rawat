@@ -1,15 +1,28 @@
-import React from 'react';
-import { Box, Container, Typography, Grid } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Container, Typography, Grid, CircularProgress, Button } from '@mui/material';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ProjectCard from '../../components/ProjectCard';
+import { projectsApi } from '../../services/api';
 
-const projects = [
+const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.1 } },
+};
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 25 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+};
+
+const fallbackProjects = [
     {
         title: 'Lead Generation Platform',
         description: 'A full-scale platform for managing and qualifying B2B leads with automated outreach capabilities.',
         techStack: ['React', 'Node.js', 'MongoDB', 'AWS'],
         github: 'https://github.com/abhijeet-rawat',
-        demo: '#',
+        demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
     },
     {
@@ -17,7 +30,7 @@ const projects = [
         description: 'Real-time data visualization tool for monitoring server health and application performance metrics.',
         techStack: ['React.js', 'Tailwind CSS', 'D3.js', 'Redis'],
         github: 'https://github.com/abhijeet-rawat',
-        demo: '#',
+        demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop',
     },
     {
@@ -25,75 +38,154 @@ const projects = [
         description: 'Custom CRM built for a logistics company to manage client interaction and B2B tracking.',
         techStack: ['Express', 'React.js', 'PostgreSQL'],
         github: 'https://github.com/abhijeet-rawat',
-        demo: '#',
+        demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop',
     },
     {
         title: 'Data Porting Automation Tool',
         description: 'Automation tool for migrating legacy database records into modern, cloud-native structures.',
-        techStack: ['JavaScript', 'Python', 'Node.js'],
+        techStack: ['JavaScript', 'Node.js', 'MongoDB'],
         github: 'https://github.com/abhijeet-rawat',
-        demo: '#',
+        demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop',
+    },
+    {
+        title: 'Cyber HUD Telemetry Engine',
+        description: 'Real-time telemetry and vector simulation dashboard built for IoT sensor arrays with WebSockets.',
+        techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Docker'],
+        github: 'https://github.com/abhijeet-rawat',
+        demo: 'https://example.com',
+        image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop',
+    },
+    {
+        title: 'Decentralized Asset Escrow',
+        description: 'Smart-contract powered escrow settlement service with automated verification and dispute arbitration.',
+        techStack: ['Node.js', 'Express', 'MongoDB', 'AWS'],
+        github: 'https://github.com/abhijeet-rawat',
+        demo: 'https://example.com',
+        image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&auto=format&fit=crop',
     },
 ];
 
-const containerVariants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.12 } },
-};
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
-
 const ProjectsSection = () => {
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const res = await projectsApi.getAll();
+                if (res.data?.success && res.data?.data?.length > 0) {
+                    setProjects(res.data.data);
+                } else {
+                    setProjects(fallbackProjects);
+                }
+            } catch (err) {
+                console.warn('Using fallback project data:', err.message);
+                setProjects(fallbackProjects);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProjects();
+    }, []);
+
+    // Display max 6 on homepage
+    const visibleProjects = projects.slice(0, 6);
+    const hasMore = projects.length > 6;
+
     return (
-        <Box id="projects" sx={{ py: { xs: 7, md: 10 } }}>
-            <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
-                <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+        <Box id="projects" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+            {/* Constrained container maxWidth to 1200px matching Navbar & other sections */}
+            <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+                <motion.div initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
                     <Typography
+                        align="center"
                         sx={{
                             fontFamily: 'Fira Code, monospace',
-                            fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                            fontSize: { xs: '0.75rem', sm: '0.85rem' },
                             color: '#00FF41',
-                            letterSpacing: '0.15em',
-                            mb: 1,
-                            opacity: 0.8,
+                            letterSpacing: '0.2em',
+                            mb: 1.5,
                         }}
                     >
-            // PROJECTS //
+                        // SELECTED_WORKS //
                     </Typography>
                     <Typography
                         variant="h2"
+                        align="center"
                         sx={{
-                            fontSize: { xs: '1.7rem', sm: '2rem', md: '2.5rem' },
-                            fontWeight: 700,
+                            fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.8rem' },
+                            fontWeight: 800,
                             color: '#fff',
-                            mb: { xs: 4, md: 5 },
+                            letterSpacing: '-0.02em',
+                            mb: { xs: 4, md: 6 },
                         }}
                     >
-                        Selected Works
+                        Featured Projects
                     </Typography>
                 </motion.div>
 
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: '-50px' }}
-                >
-                    <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
-                        {projects.map((project, index) => (
-                            <Grid size={{xs:12,sm:6}} key={index}>
-                                <motion.div variants={cardVariants} style={{ height: '100%' }}>
-                                    <ProjectCard project={project} />
-                                </motion.div>
+                {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                        <CircularProgress sx={{ color: '#00FF41' }} />
+                    </Box>
+                ) : (
+                    <>
+                        {/* 3-Column Responsive Grid matching Navbar width */}
+                        <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-50px' }}
+                        >
+                            <Grid container spacing={{ xs: 2.5, sm: 3, md: 4 }}>
+                                {visibleProjects.map((project, index) => (
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index}>
+                                        <motion.div variants={cardVariants} style={{ height: '100%' }}>
+                                            <ProjectCard project={project} />
+                                        </motion.div>
+                                    </Grid>
+                                ))}
                             </Grid>
-                        ))}
-                    </Grid>
-                </motion.div>
+                        </motion.div>
+
+                        {/* "View All" Button shown if more than 6 projects */}
+                        {hasMore && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 5, md: 7 } }}>
+                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                    <Button
+                                        onClick={() => navigate('/all-projects')}
+                                        endIcon={<ArrowForwardIcon />}
+                                        sx={{
+                                            px: 3.5,
+                                            py: 1.2,
+                                            background: '#07080c',
+                                            color: '#00FF41',
+                                            border: '1px solid #00FF41',
+                                            borderRadius: '6px',
+                                            fontFamily: 'Fira Code, monospace',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            letterSpacing: '0.1em',
+                                            textTransform: 'uppercase',
+                                            boxShadow: '0 0 15px rgba(0, 255, 65, 0.15)',
+                                            '&:hover': {
+                                                background: '#00FF41',
+                                                color: '#000',
+                                                boxShadow: '0 0 25px rgba(0, 255, 65, 0.4)',
+                                            },
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                    >
+                                        VIEW ALL PROJECTS ({projects.length})
+                                    </Button>
+                                </motion.div>
+                            </Box>
+                        )}
+                    </>
+                )}
             </Container>
         </Box>
     );

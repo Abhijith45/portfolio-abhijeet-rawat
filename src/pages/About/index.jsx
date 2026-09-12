@@ -3,6 +3,7 @@ import { Box, Container, Typography, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
 import TechStackSection from '../../sections/TechStackSection';
 import ExperienceTimeline from '../../sections/ExperienceTimeline';
+import EducationSection from '../../sections/EducationSection';
 import ReviewSection from '../../sections/ReviewSection';
 
 const About = () => {
@@ -74,14 +75,12 @@ const About = () => {
                 </Container>
             </Box>
 
-            {/* Tech Stack */}
-            <TechStackSection />
-
             {/* Experience Timeline */}
             <ExperienceTimeline />
 
-            {/* Client Reviews */}
-            <ReviewSection />
+            {/* Education Section */}
+            <EducationSection />
+
         </>
     );
 };
