@@ -2,13 +2,15 @@ import React from 'react';
 import { Box, Container, Typography, Grid, Link, IconButton, Divider } from '@mui/material';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import { SiLeetcode } from "react-icons/si";
+import { FaHackerrank } from "react-icons/fa6";
 import { motion } from 'framer-motion';
 
 const SOCIAL_LINKS = [
     { icon: <LinkedInIcon fontSize="small" />, label: 'LinkedIn', href: 'https://linkedin.com/in/abhijeet-rawat' },
     { icon: <GitHubIcon fontSize="small" />, label: 'GitHub', href: 'https://github.com/abhijeet-rawat' },
-    { icon: null, label: 'LeetCode', href: 'https://leetcode.com/abhijeet-rawat', text: 'LC' },
-    { icon: null, label: 'HackerRank', href: 'https://hackerrank.com/abhijeet-rawat', text: 'HR' },
+    { icon: <SiLeetcode fontSize="small" />, label: 'LeetCode', href: 'https://leetcode.com/abhijeet-rawat', text: 'LC' },
+    { icon: <FaHackerrank fontSize="small" />, label: 'HackerRank', href: 'https://hackerrank.com/abhijeet-rawat', text: 'HR' },
 ];
 
 const Footer = () => {
@@ -101,7 +103,7 @@ const Footer = () => {
                             textAlign: {xs:'center',sm:'right'}
                         }}
                     >
-                        © 2024 AR_DIV.
+                        © 2026 Abhijeet Rawat.
                     </Typography>
                     </Grid>
                 </Grid>

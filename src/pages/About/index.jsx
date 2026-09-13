@@ -43,7 +43,7 @@ const About = () => {
                                 fontWeight: 800,
                                 lineHeight: 1.05,
                                 letterSpacing: '-0.03em',
-                                mb: 3,
+                                mb: 6,
                             }}
                         >
                             About{' '}
@@ -58,19 +58,27 @@ const About = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
-                        <Typography
-                            sx={{
-                                color: 'rgba(255,255,255,0.6)',
-                                fontSize: { xs: '0.95rem', md: '1rem' },
-                                lineHeight: 1.8,
-                                maxWidth: '640px',
-                            }}
-                        >
-                            I am a JavaScript Developer specializing in building scalable web applications.
-                            My journey started with a fascination for how the internet works, which evolved
-                            into a career focused on performance, accessibility, and clean architecture.
-                            I bridge the gap between complex backend logic and pixel-perfect user interfaces.
-                        </Typography>
+                        {[
+                            "I'm a software developer who likes building useful things.",
+                            "My professional experience has mostly been around business applications, lead - generation systems, internal tools, APIs, integrations and automation.",
+                            "I enjoy working where the requirements aren't perfectly defined - understanding the problem, figuring out how the pieces should work together, and turning that into software.",
+                            "Outside of work, I build my own projects to experiment with technologies, architecture and ideas that I don't always get to explore professionally.",
+                            "I'm still early in my career, and I don't pretend to know everything. I care about learning quickly, taking ownership and getting better with every system I build."
+                        ].map((para, index) => (
+                            <Typography
+                                key={index}
+                                sx={{
+                                    color: 'rgba(255,255,255,0.86)',
+                                    fontSize: index === 0 ? { xs: '1rem', md: '1.5rem' } : { xs: '0.95rem', md: '1rem' },
+                                    lineHeight: 1.5,
+                                    maxWidth: { xs: '100%', sm: '80%', md: '75%' },
+                                    mb: index === 0 ? 6 : 2.5,
+                                    fontWeight: index === 0 ? 700 : 400
+                                }}
+                            >
+                                {para}
+                            </Typography>
+                        ))}
                     </motion.div>
                 </Container>
             </Box>

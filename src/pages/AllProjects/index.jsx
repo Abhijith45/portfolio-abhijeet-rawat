@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ProjectCard from '../../components/ProjectCard';
 import { projectsApi } from '../../services/api';
+import { fallbackProjects } from '../../sections/ProjectsSection';
 
 const containerVariants = {
     hidden: {},
@@ -26,11 +27,14 @@ const AllProjects = () => {
         const fetchAll = async () => {
             try {
                 const res = await projectsApi.getAll();
-                if (res.data?.success && res.data?.data) {
+                if (res.data?.success && res.data?.data && res.data.data.length > 0) {
                     setProjects(res.data.data);
+                } else {
+                    setProjects(fallbackProjects);
                 }
             } catch (err) {
-                console.error('Failed to load all projects:', err);
+                console.error('Failed to load all projects, falling back to local dataset:', err);
+                setProjects(fallbackProjects);
             } finally {
                 setLoading(false);
             }

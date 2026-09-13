@@ -1,10 +1,13 @@
-import React from 'react';
-import { Card, CardContent, Box, Typography, Chip, IconButton } from '@mui/material';
+import React, { useState } from 'react';
+import { Card, CardContent, Box, Typography, Chip, IconButton, Tooltip } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { color, motion } from 'framer-motion';
+import ProjectModal from '../ProjectModal';
 
 const ProjectCard = ({ project }) => {
+    const [modalOpen, setModalOpen] = useState(false);
     const { title, description, techStack = [], github, demo, image } = project;
 
     return (
@@ -29,20 +32,15 @@ const ProjectCard = ({ project }) => {
                     '&:hover': {
                         border: '1px solid #00FF41',
                         boxShadow: '0 0 25px rgba(0, 255, 65, 0.35), inset 0 0 15px rgba(0, 255, 65, 0.08)',
-                        background: 'none',
-                        '& .project-hud-crosshair': {
-                            borderColor: '#00FF41',
-                            opacity: 1,
-                            boxShadow: '0 0 8px #00FF41',
-                        },
+                        background: '#040508',
                         '& .project-media-container': {
                             // border: '1px solid #00FF41',
                         },
                         '& .project-title-text': {
-                            // textShadow: '0 0 10px rgba(0, 255, 65, 0.6)',
+                            color: '#00ff41'
                         },
                         '& .external-icon-link': {
-                            color:'rgba(255, 255, 255, 0.95)',
+                            color: 'rgba(255, 255, 255, 0.95)',
                             borderColor: 'rgba(255, 255, 255, 0.55)'
                         },
                     }
@@ -147,8 +145,7 @@ const ProjectCard = ({ project }) => {
                                     height: '100%',
                                     objectFit: 'cover',
                                     filter: 'contrast(1.05) brightness(0.92)',
-                                    transition: 'transform 0.4s ease',
-                                    '&:hover': { transform: 'scale(1.04)' },
+                                    transition: 'transform 0.4s ease'
                                 }}
                             />
                         ) : (
@@ -188,44 +185,68 @@ const ProjectCard = ({ project }) => {
                         {/* Title with GitHub and Live External link buttons on the right */}
                         <Box
                             sx={{
-                                // display: 'flex',
-                                // alignItems: 'flex-start',
-                                // justifyContent: 'space-between',
-                                // gap: 1,
                                 mb: 1.2,
                             }}
                         >
-                            <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0, mb:1.2 }}>
+                            <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0, mb: 1.2 }}>
                                 {github && (
-                                    <IconButton
-                                        component="a"
-                                        href={github}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        size="small"
-                                        className='external-icon-link'
-                                        sx={{
-                                            color: 'rgba(255, 255, 255, 0.65)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            borderRadius: '4px',
-                                            p: 0.6,
-                                            '&:hover': {
-                                                color: '#00FF41',
-                                                borderColor: '#00FF41',
-                                                background: 'rgba(0, 255, 65, 0.08)',
-                                            },
-                                            transition: 'all 0.2s ease',
-                                        }}
-                                    >
-                                        <GitHubIcon sx={{ fontSize: 16 }} />
-                                    </IconButton>
+                                    <Tooltip title="View GitHub Repository" arrow placement="top">
+                                        <IconButton
+                                            component="a"
+                                            href={github}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            size="small"
+                                            className='external-icon-link'
+                                            sx={{
+                                                color: 'rgba(255, 255, 255, 0.65)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                borderRadius: '4px',
+                                                p: 0.6,
+                                                '&:hover': {
+                                                    color: '#00FF41',
+                                                    borderColor: '#00FF41',
+                                                    background: 'rgba(0, 255, 65, 0.08)',
+                                                },
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            <GitHubIcon sx={{ fontSize: 16 }} />
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {demo && demo !== '#' && (
+                                    <Tooltip title="Open Live Demo" arrow placement="top">
+                                        <IconButton
+                                            component="a"
+                                            href={demo}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            size="small"
+                                            className='external-icon-link'
+                                            sx={{
+                                                color: 'rgba(255, 255, 255, 0.65)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                borderRadius: '4px',
+                                                p: 0.6,
+                                                '&:hover': {
+                                                    color: '#00FF41',
+                                                    borderColor: '#00FF41',
+                                                    background: 'rgba(0, 255, 65, 0.08)',
+                                                },
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            <OpenInNewIcon sx={{ fontSize: 16 }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
+                                <Tooltip title="Inspect Project Details" arrow placement="top">
                                     <IconButton
-                                        component="a"
-                                        href={demo}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setModalOpen(true);
+                                        }}
                                         size="small"
                                         className='external-icon-link'
                                         sx={{
@@ -237,19 +258,20 @@ const ProjectCard = ({ project }) => {
                                                 color: '#00FF41',
                                                 borderColor: '#00FF41',
                                                 background: 'rgba(0, 255, 65, 0.08)',
+                                                boxShadow: '0 0 10px rgba(0, 255, 65, 0.3)',
                                             },
                                             transition: 'all 0.2s ease',
                                         }}
                                     >
-                                        <OpenInNewIcon sx={{ fontSize: 16 }} />
+                                        <VisibilityIcon sx={{ fontSize: 16 }} />
                                     </IconButton>
-                                )}
+                                </Tooltip>
                             </Box>
                             <Typography
                                 variant="h6"
                                 className="project-title-text"
                                 sx={{
-                                    color: '#00FF41',
+                                    color: '#ffffffbf',
                                     fontFamily: 'Inter, sans-serif',
                                     fontWeight: 800,
                                     fontSize: { xs: '1.05rem', md: '1.05rem' },
@@ -306,6 +328,13 @@ const ProjectCard = ({ project }) => {
                     </Box>
                 </CardContent>
             </Card>
+
+            {/* Mac OS Window Project Detail Modal */}
+            <ProjectModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                project={project}
+            />
         </motion.div>
     );
 };

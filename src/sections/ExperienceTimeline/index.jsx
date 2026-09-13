@@ -8,27 +8,32 @@ import { experiencesApi } from '../../services/api';
 // Fallback initial experiences if offline or during initial fetch
 const fallbackExperiences = [
     {
-        company: 'Tiger Education Services',
+        company: 'Tiger Education Services (Edhike)',
         role: 'JavaScript Developer',
-        period: 'Feb 2025 – Present',
-        active: true,
+        period: 'Feb 2025 – July 2026',
+        active: false,
         location: 'Lucknow, India',
         responsibilities: [
-            'Building MERN stack applications and educational platforms using Next.js and Node.js',
-            'Improving platform performance by 40% through code splitting and asset optimization',
-            'Implementing real-time quiz engines and student progress dashboards using WebSockets',
+            'Worked on internal applications, lead-generation websites, integrations and data workflows used across the business.',
+            'Built and maintained features for lead collection, processing and distribution across client systems.',
+            'Developed tools that connected internal workflows with client APIs, Google Sheets and other external services.',
+            'Worked on web applications and internal CRM workflows for managing and distributing leads.',
+            'Built automation around incoming leads, including routing logic and scheduled distribution requirements.',
+            'Worked with Cloudflare, Firebase, Google Apps Script, logging systems and API integrations across multiple projects.'
         ],
         skills: ['JavaScript', 'React.js', 'Next.js', 'Node.js', 'Express', 'MongoDB', 'WebSockets'],
     },
     {
-        company: 'Tiger Education Services',
+        company: 'Tiger Education Services (Edhike)',
         role: 'Web Developer Intern',
         period: 'Nov 2024 – Jan 2025',
         active: false,
         location: 'Lucknow, India',
         responsibilities: [
-            'Developed responsive landing pages and UI components using Tailwind CSS',
-            'Collaborated with the design team to translate Figma prototypes into functional code',
+            'Built responsive web pages and reusable UI components.',
+            'Worked with the design team to translate Figma designs into functional interfaces.',
+            'Implemented frontend functionality using JavaScript, HTML, CSS and Tailwind CSS.',
+            'Supported website updates, debugging and integration work across company projects.'
         ],
         skills: ['HTML5', 'CSS3', 'Tailwind CSS', 'JavaScript', 'Git', 'Responsive Design'],
     },
@@ -589,7 +594,7 @@ const ExperienceTimeline = ({ customImage = null }) => {
                                                                         mt: 0.3,
                                                                     }}
                                                                 >
-                                                                    &gt;&gt; LOCATION: {exp.location}
+                                                                    LOCATION: {exp.location}
                                                                 </Typography>
                                                             )}
                                                         </Box>

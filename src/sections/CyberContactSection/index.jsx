@@ -16,41 +16,13 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contactSchema } from '../../utils/validation';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import GitHubIcon from '@mui/icons-material/GitHub';
+import SocialButtons from '../../components/SocialButtons';
 import SecurityIcon from '@mui/icons-material/Security';
 import EmailIcon from '@mui/icons-material/Email';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import { queriesApi } from '../../services/api';
 import SendIcon from '@mui/icons-material/Send';
-
-const socialButtons = [
-    {
-        id: 'linkedin',
-        label: 'LinkedIn',
-        href: 'https://linkedin.com/in/abhijeet-rawat',
-        icon: <LinkedInIcon sx={{ fontSize: 22 }} />,
-    },
-    {
-        id: 'github',
-        label: 'GitHub',
-        href: 'https://github.com/abhijeet-rawat',
-        icon: <GitHubIcon sx={{ fontSize: 22 }} />,
-    },
-    {
-        id: 'leetcode',
-        label: 'LeetCode',
-        href: 'https://leetcode.com/abhijeet-rawat',
-        text: 'LC',
-    },
-    {
-        id: 'hackerrank',
-        label: 'HackerRank',
-        href: 'https://hackerrank.com/abhijeet-rawat',
-        text: 'HR',
-    },
-];
 
 const CyberContactSection = () => {
     const [submitStatus, setSubmitStatus] = useState(null);
@@ -189,7 +161,7 @@ const CyberContactSection = () => {
             }}
         >
             <Container maxWidth="lg" sx={{ px: { xs: 2.5, sm: 4, md: 5 } }}>
-                <Grid container spacing={{ xs: 6, md: 8, lg: 10 }} alignItems="flex-start">
+                <Grid container spacing={{ xs: 6, md: 8 }} alignItems="flex-start">
                     {/* LEFT COLUMN: Headings & Social Icons */}
                     <Grid size={{ xs: 12, md: 6 }}>
                         <motion.div
@@ -209,7 +181,7 @@ const CyberContactSection = () => {
                                     fontWeight: 500,
                                 }}
                             >
-                                // INITIALIZING CONTACT
+                                // CONTACT
                             </Typography>
 
                             {/* Big Bold Headline */}
@@ -236,57 +208,33 @@ const CyberContactSection = () => {
                                     lineHeight: 1.08,
                                     letterSpacing: '-0.03em',
                                     color: '#00FF41',
-                                    mb: 5,
+                                    mb: 4,
                                 }}
                             >
                                 something amazing.
                             </Typography>
 
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.7 }}
+                            >
+                                <Typography
+                                    sx={{
+                                        color: 'rgba(255,255,255,0.95)',
+                                        fontSize: { xs: '0.9rem', md: '1rem' },
+                                        lineHeight: 1.7,
+                                        maxWidth: { xs: '100%', md: '580px' },
+                                        mb: { xs: 2.5, sm: 3, md: 4 }
+                                    }}
+                                >
+                                    I'm currently looking for my next software development opportunity and I'm also open to freelance work involving 
+                                    web applications, backend development, integrations, automation and existing-product development.
+                                </Typography>
+                            </motion.div>
+
                             {/* 4 Social / Coding Profile Icon Buttons */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                {socialButtons.map((social) => (
-                                    <IconButton
-                                        key={social.id}
-                                        component="a"
-                                        href={social.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label={social.label}
-                                        sx={{
-                                            width: { xs: 48, sm: 52 },
-                                            height: { xs: 48, sm: 52 },
-                                            borderRadius: '8px',
-                                            border: '1px solid rgba(255, 255, 255, 0.12)',
-                                            color: 'rgba(255, 255, 255, 0.85)',
-                                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            '&:hover': {
-                                                borderColor: '#00FF41',
-                                                color: '#00FF41',
-                                                background: 'rgba(0, 255, 65, 0.08)',
-                                                boxShadow: '0 0 16px rgba(0, 255, 65, 0.35)',
-                                                transform: 'translateY(-3px)',
-                                            },
-                                        }}
-                                    >
-                                        {social.icon || (
-                                            <Typography
-                                                sx={{
-                                                    fontFamily: 'Fira Code, monospace',
-                                                    fontSize: '0.95rem',
-                                                    fontWeight: 800,
-                                                    letterSpacing: '0.04em',
-                                                    color: 'inherit',
-                                                }}
-                                            >
-                                                {social.text}
-                                            </Typography>
-                                        )}
-                                    </IconButton>
-                                ))}
-                            </Box>
+                            <SocialButtons />
 
                             {/* Email Display Below Social Icons */}
                             <Box sx={{ mt: { xs: 3.5, md: 4 } }}>
@@ -412,7 +360,7 @@ const CyberContactSection = () => {
                                         fontWeight: 600,
                                     }}
                                 >
-                                    /* STATUS: AVAILABILITY */
+                                    /* STATUS: OPEN TO OPPORTUNITIES */
                                 </Typography>
                                 <Typography
                                     sx={{
@@ -423,7 +371,7 @@ const CyberContactSection = () => {
                                         lineHeight: 1.45,
                                     }}
                                 >
-                                    Currently open to freelance projects and full-time collaborations.
+                                    Currently exploring full-time software development roles and selected freelance projects.
                                 </Typography>
                             </Box>
 

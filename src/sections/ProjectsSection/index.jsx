@@ -16,7 +16,27 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
 };
 
-const fallbackProjects = [
+export const fallbackProjects = [
+    {
+        title: 'Vertex LMS',
+        description: 'A full-stack learning platform exploring structured course content, learner progress, video discovery and AI-assisted search.',
+        techStack: ['Next.js', 'React', 'Node.js', 'Sanity', 'Clerk', 'PostgreSQL', 'OpenAI'],
+        github: 'https://github.com/abhijeet-rawat',
+        demo: 'https://example.com',
+        image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop',
+        longDescription: 'A full-stack learning platform exploring structured course content, learner progress, video discovery and AI-assisted search.',
+        overview: 'A personal engineering project exploring how learning content can be structured, searched and navigated more effectively.',
+    },
+    {
+        title: 'SyncWA',
+        description: 'A WhatsApp CRM built around lead management and customer communication workflows.',
+        techStack: ['React', 'Node.js', 'Express', 'WhatsApp API', 'PostgreSQL', 'Redis'],
+        github: 'https://github.com/abhijeet-rawat',
+        demo: 'https://example.com',
+        image: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&auto=format&fit=crop',
+        longDescription: 'A WhatsApp CRM built around lead management and customer communication workflows.',
+        overview: 'Extending a WhatsApp CRM into a broader lead-management platform with authentication, multi-client administration and CRM workflows.',
+    },
     {
         title: 'Lead Generation Platform',
         description: 'A full-scale platform for managing and qualifying B2B leads with automated outreach capabilities.',
@@ -24,6 +44,7 @@ const fallbackProjects = [
         github: 'https://github.com/abhijeet-rawat',
         demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
+        overview: 'High-throughput lead ingestion pipeline connecting webhooks, scoring algorithms, and automated email nurturing sequences.',
     },
     {
         title: 'Analytics Dashboard',
@@ -32,6 +53,7 @@ const fallbackProjects = [
         github: 'https://github.com/abhijeet-rawat',
         demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop',
+        overview: 'Sub-second real-time telemetry streaming architecture using WebSockets and Redis pub/sub channels.',
     },
     {
         title: 'CRM System',
@@ -40,14 +62,7 @@ const fallbackProjects = [
         github: 'https://github.com/abhijeet-rawat',
         demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop',
-    },
-    {
-        title: 'Data Porting Automation Tool',
-        description: 'Automation tool for migrating legacy database records into modern, cloud-native structures.',
-        techStack: ['JavaScript', 'Node.js', 'MongoDB'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop',
+        overview: 'Role-based access control and live dispatch tracking built on top of relational database constraints.',
     },
     {
         title: 'Cyber HUD Telemetry Engine',
@@ -56,14 +71,7 @@ const fallbackProjects = [
         github: 'https://github.com/abhijeet-rawat',
         demo: 'https://example.com',
         image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop',
-    },
-    {
-        title: 'Decentralized Asset Escrow',
-        description: 'Smart-contract powered escrow settlement service with automated verification and dispute arbitration.',
-        techStack: ['Node.js', 'Express', 'MongoDB', 'AWS'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&auto=format&fit=crop',
+        overview: 'Low-latency canvas and SVG rendering loop capable of rendering 60fps sensor vectors without frame drops.',
     },
 ];
 
