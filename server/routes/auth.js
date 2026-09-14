@@ -51,6 +51,7 @@ router.post(
             res.json({
                 success: true,
                 message: 'Logged in successfully',
+                token,
                 user: {
                     id: user._id,
                     name: user.name,

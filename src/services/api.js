@@ -17,6 +17,14 @@ const api = axios.create({
 // Client-Side Rate Limiter & Request Interceptor
 api.interceptors.request.use(
     (config) => {
+        // Attach Bearer token from sessionStorage if available (supports cross-domain auth)
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+            const token = window.sessionStorage.getItem('admin_token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        }
+
         const method = (config.method || 'get').toUpperCase();
         const url = config.url || '';
         const bucketKey = `${method}:${url}`;
@@ -106,6 +114,11 @@ api.interceptors.response.use(
 
         const errorMsg = error.response?.data?.message || error.message || 'An error occurred';
         const statusCode = error.response?.status || 0;
+
+        // Clear expired session token if unauthorized
+        if (statusCode === 401 && typeof window !== 'undefined' && window.sessionStorage) {
+            window.sessionStorage.removeItem('admin_token');
+        }
 
         // Log critical network / server errors to webhook in fire-and-forget mode
         if (statusCode >= 500 || statusCode === 0) {
