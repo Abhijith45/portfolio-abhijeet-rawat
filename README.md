@@ -182,6 +182,10 @@ ADMIN_PASSWORD=YourStrongPasswordHere!
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
+
+# Error Logging Webhook (Optional — Google Apps Script endpoint)
+WEBHOOK_URL=
+WEBHOOK_SECRET=
 ```
 
 > [!CAUTION]
@@ -327,8 +331,8 @@ Duration:   ~Xs
 ```
 /api
 ├── /auth
-│   ├── POST   /login              # Exchange credentials for JWT cookie
-│   ├── POST   /logout             # Invalidate session cookie
+│   ├── POST   /login              # Validate credentials → return JWT token + set HTTP-only cookie
+│   ├── POST   /logout             # Invalidate HTTP-only cookie
 │   └── GET    /me                 # Check active authentication state
 ├── /projects
 │   ├── GET    /                   # Paginated projects list
@@ -367,10 +371,11 @@ Duration:   ~Xs
 
 ## 🛡️ Security & Production Hardening
 
-- **HTTP-Only Cookies**: JWTs are transmitted exclusively via secure HTTP-Only cookies to protect against client-side script theft.
+- **Cross-Domain Auth (sessionStorage + Bearer)**: Because the frontend (Netlify) and backend (Render) are on different domains, browsers block third-party `sameSite: lax` cookies. On login, the JWT is returned in the JSON response body and stored in `sessionStorage` under `admin_token`. The Axios request interceptor attaches it as an `Authorization: Bearer <token>` header on all subsequent requests. The HTTP-only cookie is still set as a local-dev fallback.
+- **Auto Session Expiry**: `sessionStorage` clears automatically when the browser tab closes — admin sessions never persist across browser restarts.
 - **XSS & Injection Protection**: HTML sanitization via `xss` and schema-enforced queries via Mongoose.
-- **Rate Limiting**: Contact form submissions are throttled using `express-rate-limit` to prevent denial-of-service and inbox flooding.
-- **Secure HTTP Headers**: Comprehensive CSP, DNS prefetch, frameguard, and hidePoweredBy headers via `helmet`.
+- **Rate Limiting**: Contact form submissions and global API access are throttled using `express-rate-limit` to prevent denial-of-service and inbox flooding.
+- **Secure HTTP Headers**: Comprehensive CSP, DNS prefetch, frameguard, and `X-Powered-By` removal via `helmet`.
 - **CORS Whitelisting**: Strict origin matching against `CLIENT_URL` prevents unauthorized cross-origin requests.
 - **Password Hashing**: Admin credentials are hashed with `bcryptjs` (salt rounds: 12) before storage — plaintext passwords are never persisted.
 
