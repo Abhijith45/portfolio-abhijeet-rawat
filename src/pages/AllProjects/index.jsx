@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Container, Typography, Grid, CircularProgress, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProjectCard from '../../components/ProjectCard';
 import { projectsApi } from '../../services/api';
-import { fallbackProjects } from '../../sections/ProjectsSection';
+
+const INITIAL_PROJECTS = 6;
+const BATCH_SIZE = 3;
 
 const containerVariants = {
     hidden: {},
@@ -17,39 +21,92 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
 };
 
+const MotionDiv = motion.div;
+
 const AllProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [visibleCount, setVisibleCount] = useState(INITIAL_PROJECTS);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const sentinelRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         window.scrollTo(0, 0);
+        let isMounted = true;
+
         const fetchAll = async () => {
             try {
                 const res = await projectsApi.getAll();
-                if (res.data?.success && res.data?.data && res.data.data.length > 0) {
-                    setProjects(res.data.data);
-                } else {
-                    setProjects(fallbackProjects);
+                if (isMounted) {
+                    if (res.data?.success && res.data?.data) {
+                        setProjects(res.data.data);
+                    }
                 }
             } catch (err) {
-                console.error('Failed to load all projects, falling back to local dataset:', err);
-                setProjects(fallbackProjects);
+                console.error('Failed to load all projects:', err);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
+
         fetchAll();
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
+    // Function to load the next batch of 3 projects
+    const loadNextBatch = useCallback(() => {
+        if (loading || isLoadingMore || visibleCount >= projects.length) return;
+
+        setIsLoadingMore(true);
+        setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, projects.length));
+            setIsLoadingMore(false);
+        }, 300);
+    }, [loading, isLoadingMore, visibleCount, projects.length]);
+
+    // IntersectionObserver for scroll-triggered pagination
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel || loading || visibleCount >= projects.length) return;
+
+        if (typeof IntersectionObserver === 'undefined') return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const firstEntry = entries[0];
+                if (firstEntry.isIntersecting) {
+                    loadNextBatch();
+                }
+            },
+            {
+                root: null,
+                rootMargin: '160px',
+                threshold: 0.1,
+            }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [loading, visibleCount, projects.length, loadNextBatch]);
+
+    const visibleProjects = projects.slice(0, visibleCount);
+    const hasMore = visibleCount < projects.length;
+
     return (
-        <Box sx={{ pt: { xs: 6, md: 10 }, pb: { xs: 8, md: 14 }, minHeight: '100vh', background: '#050505' }}>
-            {/* Constrained container maxWidth to lg matching Navbar */}
+        <Box sx={{ pt: { xs: 2, md: 4 }, pb: { xs: 8, md: 14 }, minHeight: '100vh', background: 'none' }}>
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 {/* Back button */}
-                <Box sx={{ mb: 4 }}>
+                <Box sx={{ mb: 2 }}>
                     <Button
                         startIcon={<ArrowBackIcon />}
+                        disableRipple
+                        disableElevation
+                        variant="text"
                         onClick={() => navigate('/')}
                         sx={{
                             color: 'rgba(255, 255, 255, 0.7)',
@@ -59,31 +116,31 @@ const AllProjects = () => {
                             '&:hover': { color: '#00FF41', background: 'transparent' },
                         }}
                     >
-                        RETURN_TO_BASE // HOME
+                        HOME
                     </Button>
                 </Box>
 
                 {/* Header */}
-                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <MotionDiv initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                     <Typography
                         sx={{
                             fontFamily: 'Fira Code, monospace',
                             fontSize: { xs: '0.75rem', sm: '0.85rem' },
                             color: '#00FF41',
                             letterSpacing: '0.2em',
-                            mb: 1,
+                            mb: 0.75,
                         }}
                     >
-                        // ARCHIVE // DIRECTORY_LISTING
+                        // MY PROJECTS ({projects?.length})
                     </Typography>
                     <Typography
                         variant="h1"
                         sx={{
-                            fontSize: { xs: '2.5rem', sm: '3.2rem', md: '3.8rem' },
+                            fontSize: { xs: '2rem', sm: '2.6rem', md: '3.2rem' },
                             fontWeight: 900,
                             letterSpacing: '-0.03em',
                             color: '#fff',
-                            mb: 2,
+                            mb: 3,
                         }}
                     >
                         All Works &amp;{' '}
@@ -91,19 +148,7 @@ const AllProjects = () => {
                             Deployments
                         </Box>
                     </Typography>
-                    <Typography
-                        sx={{
-                            color: 'rgba(255, 255, 255, 0.6)',
-                            fontFamily: 'Fira Code, monospace',
-                            fontSize: { xs: '0.85rem', sm: '0.95rem' },
-                            maxWidth: '700px',
-                            lineHeight: 1.7,
-                            mb: { xs: 5, md: 7 },
-                        }}
-                    >
-                        Comprehensive index of client systems, open source architectures, and full-stack deployments. Total records indexed: {projects.length}.
-                    </Typography>
-                </motion.div>
+                </MotionDiv>
 
                 {/* 3-Column Projects Grid */}
                 {loading ? (
@@ -111,21 +156,109 @@ const AllProjects = () => {
                         <CircularProgress sx={{ color: '#00FF41' }} />
                     </Box>
                 ) : (
-                    <motion.div
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                    >
-                        <Grid container spacing={{ xs: 2.5, sm: 3, md: 3 }}>
-                            {projects.map((project, index) => (
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index}>
-                                    <motion.div variants={cardVariants} style={{ height: '100%' }}>
-                                        <ProjectCard project={project} />
-                                    </motion.div>
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </motion.div>
+                    <>
+                        <MotionDiv
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            key={visibleCount}
+                        >
+                            <Grid container spacing={{ xs: 2.5, sm: 3, md: 3 }}>
+                                {visibleProjects.map((project, index) => (
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index} data-testid="project-card-item">
+                                        <MotionDiv variants={cardVariants} style={{ height: '100%' }}>
+                                            <ProjectCard project={project} />
+                                        </MotionDiv>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </MotionDiv>
+
+                        {/* Scroll Pagination Sentinel & Controls */}
+                        {hasMore && (
+                            <Box
+                                ref={sentinelRef}
+                                data-testid="scroll-sentinel"
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    pt: 6,
+                                    pb: 2,
+                                }}
+                            >
+                                {isLoadingMore ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <CircularProgress size={22} sx={{ color: '#00FF41' }} />
+                                        <Typography
+                                            sx={{
+                                                fontFamily: 'Fira Code, monospace',
+                                                fontSize: '0.8rem',
+                                                color: '#00FF41',
+                                                letterSpacing: '0.1em',
+                                            }}
+                                        >
+                                            FETCHING_NEXT_BATCH (+3)...
+                                        </Typography>
+                                    </Box>
+                                ) : (
+                                    <Button
+                                        data-testid="load-more-btn"
+                                        variant="outlined"
+                                        onClick={loadNextBatch}
+                                        endIcon={<KeyboardDoubleArrowDownIcon />}
+                                        sx={{
+                                            borderColor: 'rgba(0, 255, 65, 0.3)',
+                                            color: '#00FF41',
+                                            fontFamily: 'Fira Code, monospace',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 600,
+                                            letterSpacing: '0.08em',
+                                            px: 3,
+                                            py: 1,
+                                            borderRadius: '4px',
+                                            background: 'rgba(0, 0, 0, 0.4)',
+                                            '&:hover': {
+                                                borderColor: '#00FF41',
+                                                background: 'rgba(0, 255, 65, 0.08)',
+                                                boxShadow: '0 0 15px rgba(0, 255, 65, 0.2)',
+                                            },
+                                        }}
+                                    >
+                                        LOAD MORE PROJECTS (+3)
+                                    </Button>
+                                )}
+                            </Box>
+                        )}
+
+                        {/* End of records banner */}
+                        {!hasMore && projects.length > 0 && (
+                            <Box
+                                data-testid="all-projects-loaded-banner"
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 1.5,
+                                    pt: 6,
+                                    pb: 2,
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                }}
+                            >
+                                <CheckCircleOutlineIcon sx={{ fontSize: 16, color: '#00FF41' }} />
+                                <Typography
+                                    sx={{
+                                        fontFamily: 'Fira Code, monospace',
+                                        fontSize: '0.8rem',
+                                        letterSpacing: '0.08em',
+                                    }}
+                                >
+                                    // ALL ARCHIVES DEPLOYED [TOTAL: {projects.length} PROJECTS]
+                                </Typography>
+                            </Box>
+                        )}
+                    </>
                 )}
             </Container>
         </Box>

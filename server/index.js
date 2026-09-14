@@ -14,6 +14,10 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 
+const { logger, sendWebhookPayload } = require('./utils/logger');
+const morganMiddleware = require('./middleware/morganLogger');
+const errorHandler = require('./middleware/errorHandler');
+
 const reviewRoutes = require('./routes/reviews');
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
@@ -21,9 +25,36 @@ const technologyRoutes = require('./routes/technologies');
 const queryRoutes = require('./routes/queries');
 const resumeRoutes = require('./routes/resume');
 const experienceRoutes = require('./routes/experiences');
+const userRoutes = require('./routes/user');
+const adminRoutes = require('./routes/admin');
+
+// Top-level unhandled exception and rejection handlers
+process.on('uncaughtException', (err) => {
+    logger.error(`Uncaught Exception: ${err.message}`, {
+        component: 'process:uncaughtException',
+        severity: 'ERROR',
+        statusCode: 500,
+        stack: err.stack,
+        sendToWebhook: true,
+    });
+});
+
+process.on('unhandledRejection', (reason) => {
+    const err = reason instanceof Error ? reason : new Error(String(reason));
+    logger.error(`Unhandled Rejection: ${err.message}`, {
+        component: 'process:unhandledRejection',
+        severity: 'ERROR',
+        statusCode: 500,
+        stack: err.stack,
+        sendToWebhook: true,
+    });
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// HTTP Request Logger (Morgan -> Winston)
+app.use(morganMiddleware);
 
 // Security middleware
 app.use(helmet());
@@ -63,6 +94,8 @@ app.use('/api/technologies', technologyRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/experiences', experienceRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -73,22 +106,36 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Centralized Global Error Handler Middleware
+app.use(errorHandler);
+
 // Connect to MongoDB & Start Server
 if (!process.env.MONGODB_URI) {
-    console.error('CRITICAL: MONGODB_URI is not set in environment variables');
+    logger.error('CRITICAL: MONGODB_URI is not set in environment variables', {
+        component: 'database:init',
+        severity: 'ERROR',
+        statusCode: 500,
+        sendToWebhook: true,
+    });
     process.exit(1);
 }
 
 mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => {
-        console.log('Connected to MongoDB Atlas');
+        logger.info('Connected to MongoDB Atlas', { component: 'database' });
         app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+            logger.info(`Server running on port ${PORT}`, { component: 'server' });
         });
     })
     .catch((err) => {
-        console.error('MongoDB connection error:', err);
+        logger.error(`MongoDB connection error: ${err.message}`, {
+            component: 'database',
+            severity: 'ERROR',
+            statusCode: 500,
+            stack: err.stack,
+            sendToWebhook: true,
+        });
         process.exit(1);
     });
 

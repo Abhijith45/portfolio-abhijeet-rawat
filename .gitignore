@@ -40,9 +40,14 @@ Thumbs.db
 *.sln
 *.sw?
 
-# ─── Test & debug scripts (should not ship to production) ────────────────────
+# ─── Test & Coverage ────────────────────────────────────────────────────────
+**/__tests__/
+**/*.test.js
+**/*.test.jsx
+coverage/
+.vitest/
 server/test-email.js
-server/seed.js
 
 # ─── Misc ────────────────────────────────────────────────────────────────────
 *.local
+

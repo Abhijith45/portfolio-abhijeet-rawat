@@ -45,10 +45,14 @@ const fallbackReviews = [
 ];
 
 const ReviewSection = () => {
-    const { reviews: fetchedReviews, loading } = useReviews();
+    const { reviews, loading } = useReviews();
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const reviews = fetchedReviews && fetchedReviews.length > 0 ? fetchedReviews : fallbackReviews;
+    // If loading or no reviews are available from database, do not render this section
+    if (loading || !reviews || reviews.length === 0) {
+        return null;
+    }
+
     const totalReviews = reviews.length;
 
     // Window of 3 reviews to display at a time

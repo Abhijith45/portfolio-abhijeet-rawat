@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { apiCache } from './apiCache';
+import { clientRateLimiter } from './rateLimiter';
+import { logErrorToWebhook } from './logger';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -11,25 +14,149 @@ const api = axios.create({
     },
 });
 
-// Response interceptor for unified error parsing
+// Client-Side Rate Limiter & Request Interceptor
+api.interceptors.request.use(
+    (config) => {
+        const method = (config.method || 'get').toUpperCase();
+        const url = config.url || '';
+        const bucketKey = `${method}:${url}`;
+
+        // Custom limits: e.g., max 8 submissions per 10s for POST/PUT, 40 per 10s for GET
+        const maxLimit = method === 'GET' ? 40 : 8;
+        const rateCheck = clientRateLimiter.checkLimit(bucketKey, maxLimit);
+
+        if (!rateCheck.allowed) {
+            // If it's a GET request and we have cached data, we can resolve from cache
+            if (method === 'GET') {
+                const cacheKey = apiCache.generateKey(url, config.params);
+                const cached = apiCache.getRaw(cacheKey);
+                if (cached?.data) {
+                    // Attach cached response to config so adapter or error interceptor returns it
+                    config.adapter = () =>
+                        Promise.resolve({
+                            data: cached.data,
+                            status: 200,
+                            statusText: 'OK (Client Rate Limited - Served from Cache)',
+                            headers: { 'x-cache': 'HIT_RATE_LIMITED' },
+                            config,
+                        });
+                    return config;
+                }
+            }
+
+            return Promise.reject(new Error(rateCheck.message));
+        }
+
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// Response Interceptor: Caching, Invalidation & Offline/429 Fallback
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const method = (response.config?.method || 'get').toUpperCase();
+        const url = response.config?.url || '';
+
+        // Synchronize with server cache version if header is provided
+        const serverCacheVer = response.headers?.['x-cache-version'];
+        if (serverCacheVer) {
+            apiCache.checkVersion(serverCacheVer);
+        }
+
+        // 1. Cache successful GET requests
+        if (method === 'GET' && response.status >= 200 && response.status < 300) {
+            const cacheKey = apiCache.generateKey(url, response.config.params);
+            apiCache.set(cacheKey, response.data);
+        }
+
+        // 2. Invalidate cache on mutations (POST, PUT, DELETE)
+        if (['POST', 'PUT', 'DELETE'].includes(method)) {
+            if (url.includes('/api/projects')) apiCache.clear('/api/projects');
+            if (url.includes('/api/technologies')) apiCache.clear('/api/technologies');
+            if (url.includes('/api/reviews')) apiCache.clear('/api/reviews');
+            if (url.includes('/api/queries')) apiCache.clear('/api/queries');
+            if (url.includes('/api/resume')) apiCache.clear('/api/resume');
+            if (url.includes('/api/experiences')) apiCache.clear('/api/experiences');
+            if (url.includes('/api/user')) apiCache.clear('/api/user');
+        }
+
+        return response;
+    },
     (error) => {
+        const config = error.config || {};
+        const method = (config.method || 'get').toUpperCase();
+        const url = config.url || '';
+
+        // Check if fallback cache is available for GET requests (offline, 429, 500, timeout)
+        if (method === 'GET' && url) {
+            const cacheKey = apiCache.generateKey(url, config.params);
+            const cached = apiCache.getRaw(cacheKey);
+            if (cached?.data) {
+                return Promise.resolve({
+                    data: cached.data,
+                    status: 200,
+                    statusText: 'OK (Offline / Error Fallback Cache)',
+                    headers: { 'x-cache': 'HIT_FALLBACK' },
+                    config,
+                    fromCache: true,
+                });
+            }
+        }
+
         const errorMsg = error.response?.data?.message || error.message || 'An error occurred';
+        const statusCode = error.response?.status || 0;
+
+        // Log critical network / server errors to webhook in fire-and-forget mode
+        if (statusCode >= 500 || statusCode === 0) {
+            try {
+                logErrorToWebhook({
+                    severity: 'ERROR',
+                    component: `apiClient:${method}:${url}`,
+                    stack: error.stack || 'N/A',
+                    statusCode,
+                    message: errorMsg,
+                });
+            } catch {
+                // Safeguard against logging issues
+            }
+        }
+
         return Promise.reject(new Error(errorMsg));
     }
 );
 
+/**
+ * Deduplicated GET helper to ensure concurrent identical requests share a single network call.
+ */
+const deduplicatedGet = (url, params) => {
+    const cacheKey = apiCache.generateKey(url, params);
+    return apiCache.deduplicate(cacheKey, () => api.get(url, { params }));
+};
+
+// Admin Management & System APIs
+export const adminApi = {
+    purgeCache: () => api.post('/api/admin/purge-cache'),
+    getCacheStatus: () => api.get('/api/admin/cache-status'),
+};
+
+// User Profile & Social Links API
+export const userApi = {
+    getProfile: () => deduplicatedGet('/api/user/profile'),
+    updateProfile: (data) => api.put('/api/user/profile', data),
+};
+
 // Auth API
 export const authApi = {
     login: (credentials) => api.post('/api/auth/login', credentials),
-    getMe: () => api.get('/api/auth/me'),
+    getMe: () => deduplicatedGet('/api/auth/me'),
     logout: () => api.post('/api/auth/logout'),
 };
 
 // Projects API
 export const projectsApi = {
-    getAll: () => api.get('/api/projects'),
+    getFeatured: (params) => deduplicatedGet('/api/projects/featured', params),
+    getAll: (params) => deduplicatedGet('/api/projects', params),
     create: (data) => api.post('/api/projects', data),
     update: (id, data) => api.put(`/api/projects/${id}`, data),
     delete: (id) => api.delete(`/api/projects/${id}`),
@@ -37,11 +164,12 @@ export const projectsApi = {
         api.post('/api/projects/upload-image', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         }),
+    verifyUrl: (url) => api.post('/api/projects/verify-url', { url }),
 };
 
 // Technologies API
 export const technologiesApi = {
-    getAll: () => api.get('/api/technologies'),
+    getAll: () => deduplicatedGet('/api/technologies'),
     create: (data) => api.post('/api/technologies', data),
     update: (id, data) => api.put(`/api/technologies/${id}`, data),
     delete: (id) => api.delete(`/api/technologies/${id}`),
@@ -53,8 +181,8 @@ export const technologiesApi = {
 
 // Reviews API
 export const reviewsApi = {
-    getApproved: () => api.get('/api/reviews'),
-    getAll: () => api.get('/api/reviews/all'),
+    getApproved: () => deduplicatedGet('/api/reviews'),
+    getAll: () => deduplicatedGet('/api/reviews/all'),
     create: (data) => api.post('/api/reviews', data),
     update: (id, data) => api.put(`/api/reviews/${id}`, data),
     delete: (id) => api.delete(`/api/reviews/${id}`),
@@ -63,23 +191,25 @@ export const reviewsApi = {
 // Contact Queries API
 export const queriesApi = {
     submit: (data) => api.post('/api/queries', data),
-    getAll: (params) => api.get('/api/queries', { params }),
+    getAll: (params) => deduplicatedGet('/api/queries', params),
     update: (id, data) => api.put(`/api/queries/${id}`, data),
     delete: (id) => api.delete(`/api/queries/${id}`),
 };
 
-// Resume API
+// Resume API (Backward Compatible)
 export const resumeApi = {
-    getActive: () => api.get('/api/resume'),
-    update: (data) => api.post('/api/resume', data),
+    getActive: () => deduplicatedGet('/api/user/profile'),
+    update: (data) => api.put('/api/user/profile', { resumeURL: data.downloadUrl || data.resumeURL }),
 };
 
 // Experiences API
 export const experiencesApi = {
-    getAll: () => api.get('/api/experiences'),
+    getAll: () => deduplicatedGet('/api/experiences'),
     create: (data) => api.post('/api/experiences', data),
     update: (id, data) => api.put(`/api/experiences/${id}`, data),
     delete: (id) => api.delete(`/api/experiences/${id}`),
 };
 
+export { apiCache } from './apiCache';
+export { clientRateLimiter } from './rateLimiter';
 export default api;

@@ -2,31 +2,37 @@ const express = require('express');
 const router = express.Router();
 const Experience = require('../models/Experience');
 const { protect } = require('../middleware/auth');
+const serverCache = require('../utils/cacheManager');
 
 const defaultExperiences = [
     {
-        company: 'Tiger Education Services',
+        company: 'Tiger Education Services (Edhike)',
         role: 'JavaScript Developer',
-        period: 'Feb 2025 – Present',
-        active: true,
+        period: 'Feb 2025 – July 2026',
+        active: false,
         location: 'Lucknow, India',
         responsibilities: [
-            'Building MERN stack applications and educational platforms using Next.js and Node.js',
-            'Improving platform performance by 40% through code splitting and asset optimization',
-            'Implementing real-time quiz engines and student progress dashboards using WebSockets',
+            'Worked on internal applications, lead-generation websites, integrations and data workflows used across the business.',
+            'Built and maintained features for lead collection, processing and distribution across client systems.',
+            'Developed tools that connected internal workflows with client APIs, Google Sheets and other external services.',
+            'Worked on web applications and internal CRM workflows for managing and distributing leads.',
+            'Built automation around incoming leads, including routing logic and scheduled distribution requirements.',
+            'Worked with Cloudflare, Firebase, Google Apps Script, logging systems and API integrations across multiple projects.'
         ],
         skills: ['JavaScript', 'React.js', 'Next.js', 'Node.js', 'Express', 'MongoDB', 'WebSockets'],
         order: 1,
     },
     {
-        company: 'Tiger Education Services',
+        company: 'Tiger Education Services (Edhike)',
         role: 'Web Developer Intern',
         period: 'Nov 2024 – Jan 2025',
         active: false,
         location: 'Lucknow, India',
         responsibilities: [
-            'Developed responsive landing pages and UI components using Tailwind CSS',
-            'Collaborated with the design team to translate Figma prototypes into functional code',
+            'Built responsive web pages and reusable UI components.',
+            'Worked with the design team to translate Figma designs into functional interfaces.',
+            'Implemented frontend functionality using JavaScript, HTML, CSS and Tailwind CSS.',
+            'Supported website updates, debugging and integration work across company projects.'
         ],
         skills: ['HTML5', 'CSS3', 'Tailwind CSS', 'JavaScript', 'Git', 'Responsive Design'],
         order: 2,
@@ -36,6 +42,17 @@ const defaultExperiences = [
 // GET /api/experiences - Public: get all experiences
 router.get('/', async (req, res) => {
     try {
+        const cacheKey = 'experiences:all';
+        const cached = serverCache.get(cacheKey);
+
+        res.setHeader('x-cache-version', String(serverCache.getCacheVersion()));
+        res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+
+        if (cached) {
+            res.setHeader('x-server-cache', 'HIT');
+            return res.json(cached);
+        }
+
         let experiences = await Experience.find().sort({ order: 1, createdAt: -1 }).lean();
 
         // Auto-seed if database collection is empty
@@ -44,7 +61,10 @@ router.get('/', async (req, res) => {
             experiences = await Experience.find().sort({ order: 1, createdAt: -1 }).lean();
         }
 
-        res.json({ success: true, count: experiences.length, data: experiences });
+        const payload = { success: true, count: experiences.length, data: experiences };
+        serverCache.set(cacheKey, payload);
+        res.setHeader('x-server-cache', 'MISS');
+        res.json(payload);
     } catch (err) {
         console.error('Error fetching experiences:', err);
         // Fallback to default in-memory list on database failure
@@ -70,6 +90,9 @@ router.post('/', protect, async (req, res) => {
                 : (skills || '').split(',').map((s) => s.trim()).filter(Boolean),
             order: Number(order) || 0,
         });
+
+        serverCache.clearPattern('experiences');
+        serverCache.incrementCacheVersion();
 
         res.status(201).json({ success: true, data: experience });
     } catch (err) {
@@ -109,6 +132,9 @@ router.put('/:id', protect, async (req, res) => {
             return res.status(404).json({ success: false, message: 'Experience not found' });
         }
 
+        serverCache.clearPattern('experiences');
+        serverCache.incrementCacheVersion();
+
         res.json({ success: true, data: experience });
     } catch (err) {
         console.error(err);
@@ -123,6 +149,10 @@ router.delete('/:id', protect, async (req, res) => {
         if (!experience) {
             return res.status(404).json({ success: false, message: 'Experience not found' });
         }
+
+        serverCache.clearPattern('experiences');
+        serverCache.incrementCacheVersion();
+
         res.json({ success: true, message: 'Experience deleted successfully' });
     } catch (err) {
         console.error(err);

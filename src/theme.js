@@ -56,7 +56,20 @@ const theme = createTheme({
     borderRadius: 8,
   },
   components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiIconButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
     MuiButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
       styleOverrides: {
         root: {
           borderRadius: '4px',

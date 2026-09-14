@@ -22,60 +22,86 @@ import { motion } from 'framer-motion';
 import portfolioFavicon from '../../assets/portfolio_favicon.png';
 
 const navItems = [
-    { label: 'Home', path: '/' },
+    { label: 'Work', path: '/#projects', hash: 'projects' },
+    { label: 'Skills', path: '/#skills', hash: 'skills' },
     { label: 'About', path: '/about' },
-    // { label: 'Projects', path: '/#projects' },
     { label: 'Contact', path: '/contact' },
 ];
 
-const defaultResumeUrl = import.meta.env.RESUME_URL || import.meta.env.VITE_RESUME_URL || '/resume.pdf';
-
 const Navbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [resumeUrl, setResumeUrl] = useState(defaultResumeUrl);
+    const [activeSection, setActiveSection] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+    // Scroll Spy for Home page hash sections (Work/Projects and Skills)
     useEffect(() => {
-        import('../../services/api').then(({ resumeApi }) => {
-            resumeApi.getActive()
-                .then((res) => {
-                    if (res.data?.data?.downloadUrl) {
-                        setResumeUrl(res.data.data.downloadUrl);
+        if (location.pathname !== '/') {
+            setActiveSection('');
+            return;
+        }
+
+        const handleScroll = () => {
+            const sections = ['skills', 'projects'];
+            const scrollPosition = window.scrollY + 200;
+
+            for (const sectionId of sections) {
+                const el = document.getElementById(sectionId);
+                if (el) {
+                    const top = el.offsetTop;
+                    const height = el.offsetHeight;
+                    if (scrollPosition >= top && scrollPosition < top + height) {
+                        setActiveSection(sectionId);
+                        return;
                     }
-                })
-                .catch(() => {});
-        });
-    }, []);
+                }
+            }
+
+            if (window.scrollY < 300) {
+                setActiveSection('');
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [location.pathname]);
 
     const scrolled = useScrollTrigger({
         disableHysteresis: true,
         threshold: 50,
     });
 
-    const handleNavClick = (path) => {
+    const scrollToSection = (hash) => {
+        const el = document.getElementById(hash);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    const handleNavClick = (item) => {
         setDrawerOpen(false);
-        if (path.includes('#')) {
-            const [pagePath, hash] = path.split('#');
-            if (location.pathname !== pagePath && pagePath !== '') {
-                navigate(pagePath);
-                setTimeout(() => {
-                    const el = document.getElementById(hash);
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }, 300);
+        const { path, hash } = item;
+
+        if (hash) {
+            if (location.pathname !== '/') {
+                navigate(`/#${hash}`);
             } else {
-                navigate('/');
-                setTimeout(() => {
-                    const el = document.getElementById(hash);
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
+                scrollToSection(hash);
             }
         } else {
             navigate(path);
-            window.scrollTo(0, 0);
         }
+    };
+
+    const isItemActive = (item) => {
+        if (location.pathname === '/' && item.hash) {
+            return activeSection === item.hash;
+        }
+        return !item.hash && location.pathname === item.path;
     };
 
     return (
@@ -101,7 +127,13 @@ const Navbar = () => {
                         style={{ flex: 1 }}
                     >
                         <Box
-                            onClick={() => handleNavClick('/')}
+                            onClick={() => {
+                                if (location.pathname !== '/') {
+                                    navigate('/');
+                                } else {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            }}
                             sx={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -135,15 +167,18 @@ const Navbar = () => {
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 {navItems.map((item) => (
                                     <Button
+                                        variant='text'
+                                        disableRipple
                                         key={item.label}
-                                        onClick={() => handleNavClick(item.path)}
+                                        onClick={() => handleNavClick(item)}
                                         sx={{
-                                            color: location.pathname === item.path ? '#00FF41' : 'rgba(255,255,255,0.7)',
+                                            color: isItemActive(item) ? '#00FF41' : 'rgba(255,255,255,0.7)',
                                             fontFamily: 'Inter, sans-serif',
                                             fontSize: '0.85rem',
-                                            fontWeight: 500,
+                                            fontWeight: isItemActive(item) ? 700 : 500,
                                             letterSpacing: '0.05em',
                                             px: 2,
+                                            position: 'relative',
                                             '&:hover': { color: '#ffffff', background: 'transparent' },
                                             textTransform: 'uppercase',
                                         }}
@@ -151,32 +186,6 @@ const Navbar = () => {
                                         {item.label}
                                     </Button>
                                 ))}
-                                <Button
-                                    variant="contained"
-                                    component="a"
-                                    href={resumeUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    sx={{
-                                        ml: 2,
-                                        background: '#00FF41',
-                                        color: '#000',
-                                        fontFamily: 'Inter, sans-serif',
-                                        fontWeight: 700,
-                                        fontSize: '0.8rem',
-                                        letterSpacing: '0.1em',
-                                        textTransform: 'uppercase',
-                                        px: 2.5,
-                                        py: 0.8,
-                                        borderRadius: '4px',
-                                        '&:hover': {
-                                            background: '#39FF14',
-                                            boxShadow: '0 0 20px rgba(0,255,65,0.4)',
-                                        },
-                                    }}
-                                >
-                                    Resume
-                                </Button>
                             </Box>
                         </motion.div>
                     )}
@@ -213,7 +222,8 @@ const Navbar = () => {
                         {navItems.map((item) => (
                             <ListItem key={item.label} disablePadding>
                                 <ListItemButton
-                                    onClick={() => handleNavClick(item.path)}
+                                    disableRipple
+                                    onClick={() => handleNavClick(item)}
                                     sx={{
                                         py: 1.5,
                                         borderBottom: '1px solid rgba(255,255,255,0.05)',
@@ -224,8 +234,8 @@ const Navbar = () => {
                                         primary={item.label}
                                         primaryTypographyProps={{
                                             fontFamily: 'Inter, sans-serif',
-                                            fontWeight: 500,
-                                            color: location.pathname === item.path ? '#00FF41' : '#fff',
+                                            fontWeight: isItemActive(item) ? 700 : 500,
+                                            color: isItemActive(item) ? '#00FF41' : '#fff',
                                             letterSpacing: '0.1em',
                                             textTransform: 'uppercase',
                                         }}
@@ -234,17 +244,6 @@ const Navbar = () => {
                             </ListItem>
                         ))}
                     </List>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        component="a"
-                        href={resumeUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        sx={{ mt: 3, background: '#00FF41', color: '#000', fontWeight: 700 }}
-                    >
-                        Resume
-                    </Button>
                 </Box>
             </Drawer>
 

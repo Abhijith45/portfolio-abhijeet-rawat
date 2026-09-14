@@ -33,7 +33,7 @@ const ratingMarks = [
     { value: 5 },
 ];
 
-const ReviewForm = ({ onSuccess, redirectTo = '/', redirectDelay = 2000 }) => {
+const ReviewForm = ({ onSuccess, redirectTo = '/', redirectDelay = 2000, autoRedirect = true, redirectMessage }) => {
     const navigate = useNavigate();
     const [submitStatus, setSubmitStatus] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,10 +66,10 @@ const ReviewForm = ({ onSuccess, redirectTo = '/', redirectDelay = 2000 }) => {
     const isDesignationValid = !errors.designation && Boolean(values.designation && values.designation.trim().length >= 2);
     const isMessageValid = !errors.message && Boolean(values.message && values.message.trim().length >= 10);
 
-    // Auto-navigate to home page 2 seconds after successful submission
+    // Auto-navigate to home page 2 seconds after successful submission if autoRedirect is enabled
     useEffect(() => {
         let timer;
-        if (submitStatus === 'success') {
+        if (submitStatus === 'success' && autoRedirect && redirectTo) {
             timer = setTimeout(() => {
                 navigate(redirectTo);
             }, redirectDelay);
@@ -77,7 +77,7 @@ const ReviewForm = ({ onSuccess, redirectTo = '/', redirectDelay = 2000 }) => {
         return () => {
             if (timer) clearTimeout(timer);
         };
-    }, [submitStatus, navigate, redirectTo, redirectDelay]);
+    }, [submitStatus, navigate, redirectTo, redirectDelay, autoRedirect]);
 
     const onSubmit = async (data) => {
         if (isThrottled || isSubmitting) return;
@@ -90,7 +90,6 @@ const ReviewForm = ({ onSuccess, redirectTo = '/', redirectDelay = 2000 }) => {
             const reviewPayload = {
                 name: data.name.trim(),
                 email: data.email.trim(),
-                company: data.designation.trim(),
                 designation: data.designation.trim(),
                 rating: Number(data.rating),
                 message: data.message.trim(),
@@ -252,7 +251,11 @@ const ReviewForm = ({ onSuccess, redirectTo = '/', redirectDelay = 2000 }) => {
                             letterSpacing: '0.06em',
                         }}
                     >
-                        Redirecting to Home in 2 seconds...
+                        {redirectMessage
+                            ? redirectMessage
+                            : autoRedirect
+                            ? 'Redirecting to Home in 2 seconds...'
+                            : 'Your feedback has been saved and submitted successfully.'}
                     </Typography>
                 </motion.div>
             </Box>

@@ -1,47 +1,53 @@
 const express = require('express');
 const router = express.Router();
-const Resume = require('../models/Resume');
+const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 
-// GET /api/resume - Public: get current active resume link
+// GET /api/resume - Backward compatible: get active resume link from user profile
 router.get('/', async (req, res) => {
     try {
-        let resume = await Resume.findOne({ isActive: true }).sort({ updatedAt: -1 });
-        if (!resume) {
-            resume = {
+        const user = await User.findOne({ role: 'admin' }).lean();
+        const resumeUrl =
+            user?.resumeURL ||
+            process.env.DEFAULT_RESUME_URL ||
+            'https://docs.google.com/document/d/1azXMe6AKB34DnnR3ogXqRry5aSpHL5IUCqf5qV7FqgA/edit?usp=sharing';
+
+        res.json({
+            success: true,
+            data: {
                 title: 'Abhijeet Rawat - Full Stack Developer Resume',
-                downloadUrl:
-                    process.env.DEFAULT_RESUME_URL ||
-                    'https://drive.google.com/file/d/1Jlh8BsV3HuVy_DcsrTtsPv3e0-iaLOZa/view',
+                downloadUrl: resumeUrl,
                 version: '1.0',
-            };
-        }
-        res.json({ success: true, data: resume });
+            },
+        });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Failed to fetch resume link' });
     }
 });
 
-// POST /api/resume - Admin: set new active resume link / Google Drive metadata
+// POST /api/resume - Backward compatible: update resume link on user profile
 router.post('/', protect, async (req, res) => {
     try {
-        const { title, downloadUrl, driveFileId, version } = req.body;
-        if (!downloadUrl) {
-            return res.status(400).json({ success: false, message: 'Download URL is required' });
+        const { downloadUrl, resumeURL } = req.body;
+        const targetUrl = resumeURL || downloadUrl;
+        if (!targetUrl) {
+            return res.status(400).json({ success: false, message: 'Resume URL is required' });
         }
 
-        // Set previous active resumes to false
-        await Resume.updateMany({}, { isActive: false });
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { resumeURL: targetUrl },
+            { new: true }
+        ).select('-password');
 
-        const resume = await Resume.create({
-            title: title || 'Abhijeet Rawat - Full Stack Developer Resume',
-            downloadUrl,
-            driveFileId: driveFileId || '',
-            version: version || '1.0',
-            isActive: true,
+        res.json({
+            success: true,
+            data: {
+                title: 'Abhijeet Rawat - Full Stack Developer Resume',
+                downloadUrl: user.resumeURL,
+                version: '1.0',
+            },
         });
-
-        res.status(201).json({ success: true, data: resume });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }

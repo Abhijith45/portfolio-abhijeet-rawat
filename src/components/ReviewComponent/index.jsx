@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -12,33 +13,21 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import StarIcon from '@mui/icons-material/Star';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import TimerIcon from '@mui/icons-material/Timer';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import PauseIcon from '@mui/icons-material/Pause';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ReviewForm from '../ReviewForm';
-import { motion } from 'framer-motion';
 
 /**
  * ReviewComponent — A reusable, self-contained review flow component.
- *
- * Props:
- * @param {boolean}  open             - Controls visibility of the success modal.
- * @param {function} onClose          - Called when the component wants to close (countdown end, manual close).
- * @param {string}   [redirectTo='/'] - Path to navigate to after countdown completes.
- * @param {number}   [countdownDuration=3] - Countdown duration in seconds before auto-redirect.
- * @param {string}   [successTitle]   - Custom success title text.
- * @param {string}   [successMessage] - Custom success body message.
- * @param {string}   [feedbackTitle]  - Custom feedback section title.
- * @param {string}   [feedbackDescription] - Custom feedback section description.
- * @param {function} [onReviewSubmitted] - Callback after a review is successfully submitted.
+ * Supports both post-contact countdown prompt mode ('countdown') and direct review mode ('review').
  */
 const ReviewComponent = ({
     open = false,
     onClose,
+    initialMode = 'countdown',
     redirectTo = '/',
     countdownDuration = 3,
+    autoRedirect = true,
+    redirectMessage,
     successTitle,
     successMessage,
     feedbackTitle,
@@ -46,29 +35,33 @@ const ReviewComponent = ({
     onReviewSubmitted,
 }) => {
     const navigate = useNavigate();
-    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(initialMode === 'review');
     const [countdown, setCountdown] = useState(countdownDuration);
     const [isTimerPaused, setIsTimerPaused] = useState(false);
 
-    // Reset countdown whenever the component opens
-    useEffect(() => {
+    // Adjust state when open changes
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open) {
             setCountdown(countdownDuration);
             setIsTimerPaused(false);
-            setShowReviewModal(false);
+            setShowReviewModal(initialMode === 'review');
         }
-    }, [open, countdownDuration]);
+    }
 
-    // 3-second countdown timer for auto-navigation
+    // Countdown timer for auto-navigation in countdown mode
     useEffect(() => {
         let interval = null;
-        if (open && !showReviewModal && !isTimerPaused && countdown > 0) {
+        if (open && initialMode !== 'review' && !showReviewModal && !isTimerPaused && countdown > 0) {
             interval = setInterval(() => {
                 setCountdown((prev) => {
                     if (prev <= 1) {
                         clearInterval(interval);
                         if (onClose) onClose();
-                        navigate(redirectTo);
+                        if (autoRedirect && redirectTo) {
+                            navigate(redirectTo);
+                        }
                         return 0;
                     }
                     return prev - 1;
@@ -78,7 +71,7 @@ const ReviewComponent = ({
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [open, showReviewModal, isTimerPaused, countdown, navigate, redirectTo, onClose]);
+    }, [open, initialMode, showReviewModal, isTimerPaused, countdown, navigate, redirectTo, onClose, autoRedirect]);
 
     const handleOpenReview = useCallback(() => {
         setIsTimerPaused(true);
@@ -87,13 +80,21 @@ const ReviewComponent = ({
 
     const handleCloseReview = useCallback(() => {
         setShowReviewModal(false);
-    }, []);
+        if (initialMode === 'review' && onClose) {
+            onClose();
+        }
+    }, [initialMode, onClose]);
 
     const handleReviewSuccess = useCallback(
         (data) => {
             if (onReviewSubmitted) onReviewSubmitted(data);
+            if (initialMode === 'review' && onClose) {
+                setTimeout(() => {
+                    onClose();
+                }, 2000);
+            }
         },
-        [onReviewSubmitted]
+        [onReviewSubmitted, initialMode, onClose]
     );
 
     const handleManualClose = useCallback(() => {
@@ -101,12 +102,6 @@ const ReviewComponent = ({
         if (onClose) onClose();
     }, [onClose]);
 
-    const handleSkipToHome = useCallback(() => {
-        if (onClose) onClose();
-        navigate(redirectTo);
-    }, [onClose, navigate, redirectTo]);
-
-    // Derived values
     const timerProgress = Math.max(0, Math.min(100, (countdown / countdownDuration) * 100));
     const isTimerActive = !isTimerPaused && !showReviewModal;
 
@@ -114,92 +109,80 @@ const ReviewComponent = ({
     const resolvedSuccessMessage =
         successMessage ||
         "Thanks for reaching out! I've received your message and will review your project requirements and get back to you within 24 hours.";
-    const resolvedFeedbackTitle = feedbackTitle || "Leave Your Valuable Feedback";
+    const resolvedFeedbackTitle = feedbackTitle || (initialMode === 'review' ? "Suggest Improvements & Feedback" : "Leave Your Valuable Feedback");
     const resolvedFeedbackDescription =
         feedbackDescription ||
         "Whether you explored my portfolio, reviewed my projects, or sent an inquiry, your rating and thoughts help me continuously refine my craft and developer experience.";
 
     return (
         <>
-            {/* ─── SUCCESS MODAL ─── */}
-            <Dialog
-                maxWidth="md"
-                hideBackdrop
-                open={open}
-                onClose={(event, reason) => {
-                    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
-                    handleManualClose();
-                }}
-                PaperProps={{
-                    sx: {
-                        backgroundColor: '#000000',
-                        backgroundImage:
-                            'linear-gradient(rgba(0, 255, 64, 0.067) 1px, transparent 1px),linear-gradient(90deg, rgba(0, 255, 64, 0.088) 1px, transparent 1px)',
-                        backgroundSize: '50px 50px',
-                        color: '#ffffff',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        p: 0,
-                        borderRadius: 2,
-                        overflowY: 'auto',
-                    },
-                }}
-            >
-                {/* TOP TIMER & NAVIGATION BAR */}
-                <Box
-                    sx={{
-                        width: '100%',
-                        maxWidth: 'md',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        background: 'black',
-                        backdropFilter: 'blur(10px)',
-                        borderBottom: '1px solid rgba(0, 255, 65, 0.2)',
-                    }}
-                >
-                    {/* Progress bar for countdown */}
-                    <LinearProgress
-                        variant="determinate"
-                        value={timerProgress}
-                        sx={{
-                            height: { xs: 2, sm: 3, md: 4 },
-                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                            '& .MuiLinearProgress-bar': {
-                                backgroundColor: '#00FF41',
-                                boxShadow: '0 0 10px #00FF41',
-                                transition: 'transform 0.8s linear',
-                            },
-                        }}
-                    />
-                </Box>
-
-                {/* CENTER HERO BODY */}
-                <Container
+            {/* ─── SUCCESS / COUNTDOWN MODAL (Only when initialMode !== 'review') ─── */}
+            {initialMode !== 'review' && (
+                <Dialog
                     maxWidth="md"
-                    sx={{
-                        my: 'auto',
-                        py: { xs: 4, md: 6 },
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
+                    hideBackdrop
+                    open={open && !showReviewModal}
+                    onClose={(event, reason) => {
+                        if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
+                        handleManualClose();
+                    }}
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: '#000000',
+                            backgroundImage:
+                                'linear-gradient(rgba(0, 255, 64, 0.067) 1px, transparent 1px),linear-gradient(90deg, rgba(0, 255, 64, 0.088) 1px, transparent 1px)',
+                            backgroundSize: '50px 50px',
+                            color: '#ffffff',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            p: 0,
+                            borderRadius: 2,
+                            overflowY: 'auto',
+                        },
                     }}
                 >
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, ease: 'easeOut' }}
-                        style={{
+                    {/* TOP TIMER BAR */}
+                    <Box
+                        sx={{
+                            width: '100%',
+                            maxWidth: 'md',
+                            position: 'sticky',
+                            top: 0,
+                            zIndex: 10,
+                            background: 'black',
+                            backdropFilter: 'blur(10px)',
+                            borderBottom: '1px solid rgba(0, 255, 65, 0.2)',
+                        }}
+                    >
+                        <LinearProgress
+                            variant="determinate"
+                            value={timerProgress}
+                            sx={{
+                                height: { xs: 2, sm: 3, md: 4 },
+                                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                                '& .MuiLinearProgress-bar': {
+                                    backgroundColor: '#00FF41',
+                                    boxShadow: '0 0 10px #00FF41',
+                                    transition: 'transform 0.8s linear',
+                                },
+                            }}
+                        />
+                    </Box>
+
+                    {/* HERO BODY */}
+                    <Container
+                        maxWidth="md"
+                        sx={{
+                            my: 'auto',
+                            py: { xs: 4, md: 6 },
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            width: '100%',
+                            textAlign: 'center',
                         }}
                     >
-                        {/* Countdown timer icon */}
                         <TimerIcon
                             sx={{
                                 fontSize: { xs: 24, sm: 30, md: 40 },
@@ -214,14 +197,25 @@ const ReviewComponent = ({
                                 letterSpacing: '-0.02em',
                                 color: '#ffffff',
                                 mt: 2,
-                                mb: 2,
+                                mb: 1,
                                 lineHeight: 1.15,
                             }}
                         >
                             {countdown}
                         </Typography>
 
-                        {/* Success message */}
+                        <Typography
+                            sx={{
+                                fontFamily: 'Fira Code, monospace',
+                                fontSize: '0.8rem',
+                                color: '#00FF41',
+                                letterSpacing: '0.1em',
+                                mb: 2,
+                            }}
+                        >
+                            // {resolvedSuccessTitle.toUpperCase()}
+                        </Typography>
+
                         <Typography
                             sx={{
                                 fontFamily: 'Inter, sans-serif',
@@ -291,13 +285,13 @@ const ReviewComponent = ({
                                 Rate Now
                             </Button>
                         </Box>
-                    </motion.div>
-                </Container>
-            </Dialog>
+                    </Container>
+                </Dialog>
+            )}
 
             {/* ─── REVIEW FORM MODAL ─── */}
             <Dialog
-                open={showReviewModal}
+                open={open && (initialMode === 'review' || showReviewModal)}
                 onClose={handleCloseReview}
                 maxWidth="md"
                 fullWidth
@@ -323,16 +317,29 @@ const ReviewComponent = ({
                         pb: 2,
                     }}
                 >
-                    <Typography
-                        sx={{
-                            fontFamily: 'Inter, sans-serif',
-                            fontWeight: 800,
-                            color: '#ffffff',
-                            fontSize: { xs: '1.15rem', sm: '1.35rem' },
-                        }}
-                    >
-                        Provide Your Feedback
-                    </Typography>
+                    <Box>
+                        <Typography
+                            sx={{
+                                fontFamily: 'Fira Code, monospace',
+                                fontSize: '0.72rem',
+                                color: '#00FF41',
+                                letterSpacing: '0.12em',
+                                mb: 0.5,
+                            }}
+                        >
+                            // VISITOR FEEDBACK & REVIEW
+                        </Typography>
+                        <Typography
+                            sx={{
+                                fontFamily: 'Inter, sans-serif',
+                                fontWeight: 800,
+                                color: '#ffffff',
+                                fontSize: { xs: '1.15rem', sm: '1.35rem' },
+                            }}
+                        >
+                            {resolvedFeedbackTitle}
+                        </Typography>
+                    </Box>
                     <IconButton
                         onClick={handleCloseReview}
                         aria-label="Close review modal"
@@ -351,11 +358,31 @@ const ReviewComponent = ({
                     </IconButton>
                 </Box>
                 <DialogContent sx={{ p: 0 }}>
-                    <ReviewForm onSuccess={handleReviewSuccess} />
+                    <ReviewForm
+                        autoRedirect={autoRedirect}
+                        redirectTo={redirectTo}
+                        redirectMessage={redirectMessage}
+                        onSuccess={handleReviewSuccess}
+                    />
                 </DialogContent>
             </Dialog>
         </>
     );
+};
+
+ReviewComponent.propTypes = {
+    open: PropTypes.bool,
+    onClose: PropTypes.func,
+    initialMode: PropTypes.oneOf(['countdown', 'review']),
+    redirectTo: PropTypes.string,
+    countdownDuration: PropTypes.number,
+    autoRedirect: PropTypes.bool,
+    redirectMessage: PropTypes.string,
+    successTitle: PropTypes.string,
+    successMessage: PropTypes.string,
+    feedbackTitle: PropTypes.string,
+    feedbackDescription: PropTypes.string,
+    onReviewSubmitted: PropTypes.func,
 };
 
 export default ReviewComponent;

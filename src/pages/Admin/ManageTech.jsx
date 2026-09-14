@@ -14,13 +14,13 @@ import {
     MenuItem,
     CircularProgress,
     Alert,
-    Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { technologiesApi } from '../../services/api';
 import TechIcon from '../../components/TechIcon';
+import ConfirmDeleteDialog from '../../components/ConfirmDeleteDialog';
 
 const categories = [
     'Frontend & UI',
@@ -44,6 +44,11 @@ const ManageTech = () => {
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+
+    // Delete Modal State
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     const fetchTech = async () => {
         try {
@@ -112,13 +117,23 @@ const ManageTech = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this technology?')) return;
+    const handleOpenDelete = (tech) => {
+        setItemToDelete(tech);
+        setDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete) return;
+        setDeleting(true);
         try {
-            await technologiesApi.delete(id);
+            await technologiesApi.delete(itemToDelete._id);
+            setDeleteModalOpen(false);
+            setItemToDelete(null);
             fetchTech();
         } catch (err) {
-            alert('Failed to delete technology: ' + err.message);
+            setError('Failed to delete technology: ' + err.message);
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -224,7 +239,7 @@ const ManageTech = () => {
                                                     </IconButton>
                                                     <IconButton
                                                         size="small"
-                                                        onClick={() => handleDelete(tech._id)}
+                                                        onClick={() => handleOpenDelete(tech)}
                                                         sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: '#ff6b6b' } }}
                                                     >
                                                         <DeleteIcon fontSize="small" />
@@ -240,7 +255,7 @@ const ManageTech = () => {
                 </Grid>
             )}
 
-            {/* Dialog */}
+            {/* Add / Edit Dialog */}
             <Dialog
                 open={openDialog}
                 onClose={handleCloseDialog}
@@ -308,6 +323,20 @@ const ManageTech = () => {
                     </DialogActions>
                 </Box>
             </Dialog>
+
+            {/* Confirm Delete Dialog */}
+            <ConfirmDeleteDialog
+                open={deleteModalOpen}
+                title="Delete Technology"
+                message="Are you sure you want to permanently delete this technology skill?"
+                itemTitle={itemToDelete?.name || ''}
+                onConfirm={handleConfirmDelete}
+                onCancel={() => {
+                    setDeleteModalOpen(false);
+                    setItemToDelete(null);
+                }}
+                loading={deleting}
+            />
         </Box>
     );
 };

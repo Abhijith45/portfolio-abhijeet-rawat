@@ -23,8 +23,11 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import { queriesApi } from '../../services/api';
 import SendIcon from '@mui/icons-material/Send';
+import { useProfile } from '../../context/ProfileContext';
 
 const CyberContactSection = () => {
+    const { profile } = useProfile();
+    const contactEmail = profile?.email || 'abhijeetrawat.dev@gmail.com';
     const [submitStatus, setSubmitStatus] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,7 +37,7 @@ const CyberContactSection = () => {
     const handleCopyEmail = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        navigator.clipboard.writeText('abhijeetrawat45@gmail.com');
+        navigator.clipboard.writeText(contactEmail);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -257,7 +260,7 @@ const CyberContactSection = () => {
 
                                 <Box
                                     component="a"
-                                    href="mailto:abhijeetrawat45@gmail.com?subject=Enquiry%20Mail"
+                                    href={`mailto:${contactEmail}?subject=Enquiry%20Mail`}
                                     sx={{
                                         display: 'inline-flex',
                                         alignItems: 'center',
@@ -285,7 +288,7 @@ const CyberContactSection = () => {
                                     <EmailIcon
                                         className="email-icon"
                                         sx={{
-                                            fontSize: 20,
+                                             fontSize: 20,
                                             color: 'rgba(0, 255, 65, 0.85)',
                                             transition: 'all 0.25s ease',
                                         }}
@@ -301,7 +304,7 @@ const CyberContactSection = () => {
                                             transition: 'color 0.25s ease',
                                         }}
                                     >
-                                        abhijeetrawat45@gmail.com
+                                        {contactEmail}
                                     </Typography>
 
                                     <Tooltip title={copied ? 'Copied!' : 'Copy to clipboard'} arrow placement="top">

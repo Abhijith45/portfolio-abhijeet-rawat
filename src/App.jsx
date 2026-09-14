@@ -6,7 +6,10 @@ import { Box, CircularProgress } from '@mui/material';
 import theme from './theme';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
+import { ProfileProvider } from './context/ProfileContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 
 // Public components
 const Navbar = lazy(() => import('./components/Navbar'));
@@ -22,6 +25,7 @@ const AdminLogin = lazy(() => import('./pages/Admin/Login'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'));
 const ManageProjects = lazy(() => import('./pages/Admin/ManageProjects'));
+const ManageExperiences = lazy(() => import('./pages/Admin/ManageExperiences'));
 const ManageTech = lazy(() => import('./pages/Admin/ManageTech'));
 const ManageQueries = lazy(() => import('./pages/Admin/ManageQueries'));
 const ManageReviews = lazy(() => import('./pages/Admin/ManageReviews'));
@@ -56,65 +60,70 @@ function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <AuthProvider>
-                <Router>
-                    <Suspense fallback={<LoadingFallback />}>
-                        <Routes>
-                            {/* Public Routes */}
-                            <Route
-                                path="/"
-                                element={
-                                    <PublicLayout>
-                                        <Home />
-                                    </PublicLayout>
-                                }
-                            />
-                            <Route
-                                path="/about"
-                                element={
-                                    <PublicLayout>
-                                        <About />
-                                    </PublicLayout>
-                                }
-                            />
-                            <Route
-                                path="/contact"
-                                element={
-                                    <PublicLayout>
-                                        <Contact />
-                                    </PublicLayout>
-                                }
-                            />
-                            <Route
-                                path="/all-projects"
-                                element={
-                                    <PublicLayout>
-                                        <AllProjects />
-                                    </PublicLayout>
-                                }
-                            />
+                <ProfileProvider>
+                    <Router>
+                        <ScrollToTop />
+                        <ErrorBoundary>
+                            <Suspense fallback={<LoadingFallback />}>
+                                <Routes>
+                                    {/* Public Routes */}
+                                    <Route
+                                        path="/"
+                                        element={
+                                            <PublicLayout>
+                                                <Home />
+                                            </PublicLayout>
+                                        }
+                                    />
+                                    <Route
+                                        path="/about"
+                                        element={
+                                            <PublicLayout>
+                                                <About />
+                                            </PublicLayout>
+                                        }
+                                    />
+                                    <Route
+                                        path="/contact"
+                                        element={
+                                            <PublicLayout>
+                                                <Contact />
+                                            </PublicLayout>
+                                        }
+                                    />
+                                    <Route
+                                        path="/all-projects"
+                                        element={
+                                            <PublicLayout>
+                                                <AllProjects />
+                                            </PublicLayout>
+                                        }
+                                    />
 
+                                    {/* Admin Auth Route */}
+                                    <Route path="/admin/login" element={<AdminLogin />} />
 
-                            {/* Admin Auth Route */}
-                            <Route path="/admin/login" element={<AdminLogin />} />
+                                    {/* Protected Admin Routes */}
+                                    <Route element={<ProtectedRoute />}>
+                                        <Route path="/admin" element={<AdminLayout />}>
+                                            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                                            <Route path="dashboard" element={<AdminDashboard />} />
+                                            <Route path="projects" element={<ManageProjects />} />
+                                            <Route path="experiences" element={<ManageExperiences />} />
+                                            <Route path="technologies" element={<ManageTech />} />
+                                            <Route path="queries" element={<ManageQueries />} />
+                                            <Route path="reviews" element={<ManageReviews />} />
+                                            <Route path="resume" element={<ManageResume />} />
+                                        </Route>
+                                    </Route>
 
-                            {/* Protected Admin Routes */}
-                            <Route element={<ProtectedRoute />}>
-                                <Route path="/admin" element={<AdminLayout />}>
-                                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                                    <Route path="dashboard" element={<AdminDashboard />} />
-                                    <Route path="projects" element={<ManageProjects />} />
-                                    <Route path="technologies" element={<ManageTech />} />
-                                    <Route path="queries" element={<ManageQueries />} />
-                                    <Route path="reviews" element={<ManageReviews />} />
-                                    <Route path="resume" element={<ManageResume />} />
-                                </Route>
-                            </Route>
-
-                            {/* Catch-all */}
-                            <Route path="*" element={<Navigate to="/" replace />} />
-                        </Routes>
-                    </Suspense>
-                </Router>
+                                    {/* Catch-all */}
+                                    <Route path="*" element={<Navigate to="/" replace />} />
+                                </Routes>
+                            </Suspense>
+                        </ErrorBoundary>
+                    </Router>
+                </ProfileProvider>
             </AuthProvider>
         </ThemeProvider>
     );

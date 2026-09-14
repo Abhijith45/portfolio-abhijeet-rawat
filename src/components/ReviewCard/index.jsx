@@ -18,7 +18,7 @@ const formatDate = (dateVal) => {
 };
 
 const ReviewCard = ({ review, index = 1 }) => {
-    const { name, company, message, rating = 5, createdAt, date } = review;
+    const { name, company, designation, message, rating = 5, createdAt, date } = review;
     const reviewDate = formatDate(createdAt || date);
 
     return (
@@ -186,7 +186,7 @@ const ReviewCard = ({ review, index = 1 }) => {
                                 fontFamily: 'Fira Code, monospace',
                             }}
                         >
-                            {company}
+                            {designation || company}
                         </Typography>
                     </Box>
                 </CardContent>

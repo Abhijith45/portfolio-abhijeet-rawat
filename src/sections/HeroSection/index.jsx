@@ -6,6 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EmailIcon from '@mui/icons-material/Email';
 import DownloadIcon from '@mui/icons-material/Download';
 import SocialButtons from '../../components/SocialButtons';
+import { useProfile } from '../../context/ProfileContext';
 
 const trustIndicators = [
     'MERN Stack Developer',
@@ -15,6 +16,7 @@ const trustIndicators = [
 
 const HeroSection = () => {
     const navigate = useNavigate();
+    const { profile } = useProfile();
 
     const handleViewProjects = () => {
         const el = document.getElementById('projects');
@@ -180,9 +182,9 @@ const HeroSection = () => {
                                     mb: { xs: 2.5, sm: 3, md: 4, lg: 5 }
                                 }}
                             >
-                                Software Developer building practical web applications, backend systems, and business tools. I work across 
-                                the stack with JavaScript, React, Node.js, PostgreSQL and REST APIs, with a focus on solving real problems 
-                                rather than building software for the sake of it.
+                                Full-stack developer with professional experience building web applications, backend 
+                                services, integrations and internal business tools. I like building things that solve 
+                                annoyingly practical problems.
                             </Typography>
                         </motion.div>
 
@@ -239,7 +241,7 @@ const HeroSection = () => {
                                     disableRipple
                                     disableElevation
                                     component="a"
-                                    href="https://docs.google.com/document/d/1azXMe6AKB34DnnR3ogXqRry5aSpHL5IUCqf5qV7FqgA/edit?usp=sharing"
+                                    href={profile?.resumeURL || "https://docs.google.com/document/d/1azXMe6AKB34DnnR3ogXqRry5aSpHL5IUCqf5qV7FqgA/edit?usp=sharing"}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     variant="contained"

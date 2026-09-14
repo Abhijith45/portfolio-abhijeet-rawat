@@ -3,12 +3,26 @@ import { Card, CardContent, Box, Typography, Chip, IconButton, Tooltip } from '@
 import GitHubIcon from '@mui/icons-material/GitHub';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { color, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import ProjectModal from '../ProjectModal';
 
 const ProjectCard = ({ project }) => {
     const [modalOpen, setModalOpen] = useState(false);
-    const { title, description, techStack = [], github, demo, image } = project;
+    const {
+        title,
+        description,
+        techStack = [],
+        githubURL,
+        github,
+        liveURL,
+        demo,
+        imageURL,
+        image,
+    } = project;
+
+    const resolvedGithub = githubURL || github || '';
+    const resolvedLive = liveURL || demo || '';
+    const resolvedImage = imageURL || image || '';
 
     return (
         <motion.div
@@ -132,10 +146,10 @@ const ProjectCard = ({ project }) => {
                             }}
                         />
 
-                        {image ? (
+                        {resolvedImage ? (
                             <Box
                                 component="img"
-                                src={image}
+                                src={resolvedImage}
                                 alt={title}
                                 sx={{
                                     position: 'absolute',
@@ -164,7 +178,7 @@ const ProjectCard = ({ project }) => {
                                     fontSize: '0.75rem',
                                 }}
                             >
-                                [CYBER_FEED_OFFLINE]
+                                [IMG_NOT_AVAILABLE]
                             </Box>
                         )}
                     </Box>
@@ -189,11 +203,11 @@ const ProjectCard = ({ project }) => {
                             }}
                         >
                             <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0, mb: 1.2 }}>
-                                {github && (
+                                {resolvedGithub && (
                                     <Tooltip title="View GitHub Repository" arrow placement="top">
                                         <IconButton
                                             component="a"
-                                            href={github}
+                                            href={resolvedGithub}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             size="small"
@@ -215,11 +229,11 @@ const ProjectCard = ({ project }) => {
                                         </IconButton>
                                     </Tooltip>
                                 )}
-                                {demo && demo !== '#' && (
+                                {resolvedLive && resolvedLive !== '#' && (
                                     <Tooltip title="Open Live Demo" arrow placement="top">
                                         <IconButton
                                             component="a"
-                                            href={demo}
+                                            href={resolvedLive}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             size="small"

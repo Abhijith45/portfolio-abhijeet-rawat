@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const xss = require('xss');
 const Review = require('../models/Review');
 const { protect } = require('../middleware/auth');
+const serverCache = require('../utils/cacheManager');
 
 // Strict rate limiter for public review submission
 const submitLimiter = rateLimit({
@@ -27,14 +28,11 @@ const reviewValidation = [
         .trim()
         .isEmail()
         .withMessage('Please enter a valid email address'),
-    body('company')
-        .optional()
-        .trim()
-        .isLength({ min: 2, max: 100 })
-        .withMessage('Company must be 2–100 characters'),
     body('designation')
         .optional()
-        .trim(),
+        .trim()
+        .isLength({ max: 100 })
+        .withMessage('Designation must be at most 100 characters'),
     body('message')
         .trim()
         .isLength({ min: 10, max: 1000 })
@@ -48,16 +46,31 @@ const reviewValidation = [
 // GET /api/reviews - Fetch approved reviews (Public)
 router.get('/', async (req, res) => {
     try {
+        const cacheKey = 'reviews:approved';
+        const cached = serverCache.get(cacheKey);
+
+        res.setHeader('x-cache-version', String(serverCache.getCacheVersion()));
+        res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+
+        if (cached) {
+            res.setHeader('x-server-cache', 'HIT');
+            return res.json(cached);
+        }
+
         const reviews = await Review.find({ approved: true })
             .sort({ createdAt: -1 })
             .select('-__v')
             .lean();
 
-        res.json({
+        const payload = {
             success: true,
             count: reviews.length,
             data: reviews,
-        });
+        };
+
+        serverCache.set(cacheKey, payload);
+        res.setHeader('x-server-cache', 'MISS');
+        res.json(payload);
     } catch (err) {
         res.status(500).json({
             success: false,
@@ -96,7 +109,6 @@ router.post('/', submitLimiter, reviewValidation, async (req, res) => {
         const role = req.body.designation?.trim() || req.body.company?.trim() || '';
         const sanitized = {
             name: xss(req.body.name.trim()),
-            company: xss(role),
             designation: xss(role),
             email: req.body.email ? xss(req.body.email.trim()) : undefined,
             message: xss(req.body.message.trim()),
@@ -112,7 +124,7 @@ router.post('/', submitLimiter, reviewValidation, async (req, res) => {
             data: {
                 id: review._id,
                 name: review.name,
-                company: review.company,
+                designation: review.designation,
                 rating: review.rating,
                 createdAt: review.createdAt,
             },
@@ -134,13 +146,13 @@ router.post('/', submitLimiter, reviewValidation, async (req, res) => {
 // PUT /api/reviews/:id - Approve or update review (Admin only)
 router.put('/:id', protect, async (req, res) => {
     try {
-        const { approved, name, company, message, rating } = req.body;
+        const { approved, name, designation, company, message, rating } = req.body;
         const review = await Review.findByIdAndUpdate(
             req.params.id,
             {
                 ...(approved !== undefined && { approved }),
                 ...(name && { name }),
-                ...(company && { company }),
+                ...((designation !== undefined || company !== undefined) && { designation: (designation || company) }),
                 ...(message && { message }),
                 ...(rating && { rating }),
             },
@@ -150,6 +162,9 @@ router.put('/:id', protect, async (req, res) => {
         if (!review) {
             return res.status(404).json({ success: false, message: 'Review not found' });
         }
+
+        serverCache.clearPattern('reviews:approved');
+        serverCache.incrementCacheVersion();
 
         res.json({ success: true, data: review });
     } catch (err) {
@@ -164,6 +179,10 @@ router.delete('/:id', protect, async (req, res) => {
         if (!review) {
             return res.status(404).json({ success: false, message: 'Review not found' });
         }
+
+        serverCache.clearPattern('reviews:approved');
+        serverCache.incrementCacheVersion();
+
         res.json({ success: true, message: 'Review deleted successfully' });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

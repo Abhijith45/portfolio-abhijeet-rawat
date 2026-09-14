@@ -16,92 +16,37 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
 };
 
-export const fallbackProjects = [
-    {
-        title: 'Vertex LMS',
-        description: 'A full-stack learning platform exploring structured course content, learner progress, video discovery and AI-assisted search.',
-        techStack: ['Next.js', 'React', 'Node.js', 'Sanity', 'Clerk', 'PostgreSQL', 'OpenAI'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop',
-        longDescription: 'A full-stack learning platform exploring structured course content, learner progress, video discovery and AI-assisted search.',
-        overview: 'A personal engineering project exploring how learning content can be structured, searched and navigated more effectively.',
-    },
-    {
-        title: 'SyncWA',
-        description: 'A WhatsApp CRM built around lead management and customer communication workflows.',
-        techStack: ['React', 'Node.js', 'Express', 'WhatsApp API', 'PostgreSQL', 'Redis'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&auto=format&fit=crop',
-        longDescription: 'A WhatsApp CRM built around lead management and customer communication workflows.',
-        overview: 'Extending a WhatsApp CRM into a broader lead-management platform with authentication, multi-client administration and CRM workflows.',
-    },
-    {
-        title: 'Lead Generation Platform',
-        description: 'A full-scale platform for managing and qualifying B2B leads with automated outreach capabilities.',
-        techStack: ['React', 'Node.js', 'MongoDB', 'AWS'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
-        overview: 'High-throughput lead ingestion pipeline connecting webhooks, scoring algorithms, and automated email nurturing sequences.',
-    },
-    {
-        title: 'Analytics Dashboard',
-        description: 'Real-time data visualization tool for monitoring server health and application performance metrics.',
-        techStack: ['React.js', 'Tailwind CSS', 'D3.js', 'Redis'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop',
-        overview: 'Sub-second real-time telemetry streaming architecture using WebSockets and Redis pub/sub channels.',
-    },
-    {
-        title: 'CRM System',
-        description: 'Custom CRM built for a logistics company to manage client interaction and B2B tracking.',
-        techStack: ['Express', 'React.js', 'PostgreSQL'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop',
-        overview: 'Role-based access control and live dispatch tracking built on top of relational database constraints.',
-    },
-    {
-        title: 'Cyber HUD Telemetry Engine',
-        description: 'Real-time telemetry and vector simulation dashboard built for IoT sensor arrays with WebSockets.',
-        techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Docker'],
-        github: 'https://github.com/abhijeet-rawat',
-        demo: 'https://example.com',
-        image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop',
-        overview: 'Low-latency canvas and SVG rendering loop capable of rendering 60fps sensor vectors without frame drops.',
-    },
-];
-
 const ProjectsSection = () => {
     const [projects, setProjects] = useState([]);
+    const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
+        let isMounted = true;
         const fetchProjects = async () => {
             try {
-                const res = await projectsApi.getAll();
-                if (res.data?.success && res.data?.data?.length > 0) {
-                    setProjects(res.data.data);
-                } else {
-                    setProjects(fallbackProjects);
+                const res = await projectsApi.getFeatured();
+                if (isMounted) {
+                    if (res.data?.success && res.data?.data && res.data.data.length > 0) {
+                        setProjects(res.data.data);
+                        setHasMore(Boolean(res.data.hasMore));
+                    } 
                 }
             } catch (err) {
                 console.warn('Using fallback project data:', err.message);
-                setProjects(fallbackProjects);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
         fetchProjects();
-    }, []);
 
-    // Display max 6 on homepage
-    const visibleProjects = projects.slice(0, 6);
-    const hasMore = projects.length > 6;
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     return (
         <Box id="projects" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
@@ -118,7 +63,7 @@ const ProjectsSection = () => {
                             mb: 1.5,
                         }}
                     >
-                        // SELECTED_WORKS //
+                        // MY WORK //
                     </Typography>
                     <Typography
                         variant="h2"
@@ -149,7 +94,7 @@ const ProjectsSection = () => {
                             viewport={{ once: true, margin: '-50px' }}
                         >
                             <Grid container spacing={{ xs: 2.5, sm: 3, md: 4 }}>
-                                {visibleProjects.map((project, index) => (
+                                {projects.map((project, index) => (
                                     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index}>
                                         <motion.div variants={cardVariants} style={{ height: '100%' }}>
                                             <ProjectCard project={project} />
@@ -187,7 +132,7 @@ const ProjectsSection = () => {
                                             transition: 'all 0.3s ease',
                                         }}
                                     >
-                                        VIEW ALL PROJECTS ({projects.length})
+                                        VIEW ALL 
                                     </Button>
                                 </motion.div>
                             </Box>

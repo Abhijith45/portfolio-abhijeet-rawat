@@ -9,22 +9,15 @@ const reviewSchema = new mongoose.Schema(
             minlength: [2, 'Name must be at least 2 characters'],
             maxlength: [100, 'Name must be at most 100 characters'],
         },
-        company: {
+        email: {
             type: String,
-            required: [true, 'Company/role is required'],
             trim: true,
-            minlength: [2, 'Company must be at least 2 characters'],
-            maxlength: [100, 'Company must be at most 100 characters'],
+            lowercase: true,
         },
         designation: {
             type: String,
             trim: true,
             maxlength: [100, 'Designation must be at most 100 characters'],
-        },
-        email: {
-            type: String,
-            trim: true,
-            lowercase: true,
         },
         message: {
             type: String,

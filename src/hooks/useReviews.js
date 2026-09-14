@@ -9,39 +9,14 @@ export const useReviews = () => {
     const fetchReviews = async () => {
         try {
             setLoading(true);
-            const response = await reviewsApi.getAll();
+            const response = await reviewsApi.getApproved();
             setReviews(response.data.data || response.data || []);
             setError(null);
         } catch (err) {
             console.error('Failed to fetch reviews:', err);
             setError(err.message);
-            // Use mock data as fallback
-            setReviews([
-                {
-                    _id: '1',
-                    name: 'Sarah Jenkins',
-                    company: 'CTO, Cloudstream',
-                    rating: 5,
-                    message: "Abhijeet's ability to tackle complex architectural challenges in our React codebase was impressive. He delivers clean, maintainable code on schedule.",
-                    approved: true,
-                },
-                {
-                    _id: '2',
-                    name: 'Marcus Thorne',
-                    company: 'Product Manager',
-                    rating: 5,
-                    message: 'Working with him was a breeze. He translated our abstract ideas into a high-performing web application that our users absolutely love.',
-                    approved: true,
-                },
-                {
-                    _id: '3',
-                    name: 'Leo Zhang',
-                    company: 'Founder, TechStake',
-                    rating: 5,
-                    message: 'A true professional who understands both UI/UX and backend performance. The custom dashboard he built for our analytics is world-class.',
-                    approved: true,
-                },
-            ]);
+            // If API fails or offline, set empty array so optional section isn't falsely populated
+            setReviews([]);
         } finally {
             setLoading(false);
         }

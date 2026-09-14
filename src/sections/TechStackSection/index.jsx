@@ -84,7 +84,8 @@ const TechStackSection = () => {
     const currentItems = techByCategory[selectedCategory] || [];
 
     return (
-        <Box id="tech-stack" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+        <Box id="skills" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+            <span id="tech-stack" style={{ position: 'absolute', top: 0 }} />
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>

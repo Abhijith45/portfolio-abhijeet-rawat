@@ -1,57 +1,66 @@
 import React from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import { FaLinkedin } from "react-icons/fa6";
-import { FaGithub } from "react-icons/fa6";
-import { SiLeetcode } from "react-icons/si";
-import { FaHackerrank } from "react-icons/fa6";
-
-export const DEFAULT_SOCIAL_BUTTONS = [
-    {
-        id: 'linkedin',
-        label: 'LinkedIn',
-        href: 'https://linkedin.com/in/abhijeet-rawat',
-        icon: <FaLinkedin sx={{ fontSize: 22 }} />,
-    },
-    {
-        id: 'github',
-        label: 'GitHub',
-        href: 'https://github.com/abhijeet-rawat',
-        icon: <FaGithub sx={{ fontSize: 22 }} />,
-    },
-    {
-        id: 'leetcode',
-        label: 'LeetCode',
-        href: 'https://leetcode.com/abhijeet-rawat',
-        icon: <SiLeetcode sx={{ fontSize: 20 }}/>,
-    },
-    {
-        id: 'hackerrank',
-        label: 'HackerRank',
-        href: 'https://hackerrank.com/abhijeet-rawat',
-        icon: <FaHackerrank sx={{ fontSize: 20 }} />,
-    },
-];
+import { FaLinkedin, FaGithub, FaHackerrank } from 'react-icons/fa6';
+import { SiLeetcode } from 'react-icons/si';
+import { useProfile } from '../../context/ProfileContext';
 
 /**
  * Reusable SocialButtons component.
- * Renders social & coding profile icon buttons with cyberpunk hover effects.
+ * Dynamically displays only active, non-empty social & coding profile links from profile context.
  *
  * Props:
- * - buttons: optional list of button definitions (defaults to DEFAULT_SOCIAL_BUTTONS)
+ * - buttons: optional list of button definitions to override
  * - sx: additional container styles
  * - buttonSx: additional button styles
- * - iconSize: icon size override (e.g. 22 or 20)
- * - buttonSize: size of the square button (e.g. { xs: 44, sm: 48 } or { xs: 48, sm: 52 })
+ * - iconSize: icon size override
+ * - buttonSize: size of square button
  */
 const SocialButtons = ({
-    buttons = DEFAULT_SOCIAL_BUTTONS,
+    buttons = null,
     sx = {},
     buttonSx = {},
     buttonSize,
     iconSize = 22,
 }) => {
+    const { profile } = useProfile();
+
+    // Derive active button definitions from profile context if custom buttons not provided
+    const resolvedButtons = buttons || [
+        {
+            id: 'linkedin',
+            label: 'LinkedIn',
+            href: profile?.linkedInURL,
+            icon: <FaLinkedin style={{ fontSize: iconSize }} />,
+        },
+        {
+            id: 'github',
+            label: 'GitHub',
+            href: profile?.githubURL,
+            icon: <FaGithub style={{ fontSize: iconSize }} />,
+        },
+        {
+            id: 'leetcode',
+            label: 'LeetCode',
+            href: profile?.leetCodeURL,
+            icon: <SiLeetcode style={{ fontSize: iconSize - 2 }} />,
+        },
+        {
+            id: 'hackerrank',
+            label: 'HackerRank',
+            href: profile?.HackerRankURL,
+            icon: <FaHackerrank style={{ fontSize: iconSize - 2 }} />,
+        },
+    ];
+
+    // Filter out buttons that have no valid link
+    const activeButtons = resolvedButtons.filter(
+        (b) => b && typeof b.href === 'string' && b.href.trim().length > 0
+    );
+
+    if (activeButtons.length === 0) {
+        return null;
+    }
+
     return (
         <Box
             sx={{
@@ -62,7 +71,7 @@ const SocialButtons = ({
                 ...sx,
             }}
         >
-            {buttons.map((social) => (
+            {activeButtons.map((social) => (
                 <IconButton
                     key={social.id}
                     component="a"
@@ -91,12 +100,7 @@ const SocialButtons = ({
                     }}
                 >
                     {social.icon ? (
-                        React.cloneElement(social.icon, {
-                            sx: {
-                                fontSize: iconSize,
-                                ...social.icon.props?.sx,
-                            },
-                        })
+                        social.icon
                     ) : (
                         <Typography
                             sx={{

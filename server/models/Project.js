@@ -16,28 +16,29 @@ const projectSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
-        github: {
+        githubURL: {
             type: String,
             trim: true,
             default: '',
         },
-        demo: {
+        liveURL: {
             type: String,
             trim: true,
             default: '',
         },
-        image: {
+        imageURL: {
             type: String,
             trim: true,
-            default: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
+            default: '',
         },
-        featured: {
+        engineeringOverview: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        isFeatured: {
             type: Boolean,
             default: true,
-        },
-        order: {
-            type: Number,
-            default: 0,
         },
     },
     {

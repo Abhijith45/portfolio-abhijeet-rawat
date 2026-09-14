@@ -19,13 +19,43 @@ const userSchema = new mongoose.Schema(
         },
         name: {
             type: String,
-            default: 'Abhijeet Rawat',
+            default: '',
             trim: true,
         },
         role: {
             type: String,
             enum: ['admin'],
             default: 'admin',
+        },
+        resumeURL: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        githubURL: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        linkedInURL: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        leetCodeURL: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        HackerRankURL: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        mobileNumber: {
+            type: String,
+            default: '',
+            trim: true,
         },
     },
     {

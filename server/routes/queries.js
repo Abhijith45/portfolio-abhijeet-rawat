@@ -99,12 +99,25 @@ router.get('/', protect, async (req, res) => {
 // PUT /api/queries/:id - Admin: update status/notes
 router.put('/:id', protect, async (req, res) => {
     try {
-        const { status, notes } = req.body;
-        const query = await Query.findByIdAndUpdate(
-            req.params.id,
-            { ...(status && { status }), ...(notes !== undefined && { notes }) },
-            { new: true }
-        );
+        const { status, notes, newNote } = req.body;
+        const updateData = {};
+        if (status) updateData.status = status;
+        if (notes !== undefined) {
+            updateData.notes = Array.isArray(notes)
+                ? notes.map((n) => (typeof n === 'string' ? n.trim() : String(n))).filter(Boolean)
+                : typeof notes === 'string' && notes.trim()
+                ? [notes.trim()]
+                : [];
+        }
+
+        let query = await Query.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        if (query && newNote && typeof newNote === 'string' && newNote.trim()) {
+            query = await Query.findByIdAndUpdate(
+                req.params.id,
+                { $push: { notes: newNote.trim() } },
+                { new: true }
+            );
+        }
         if (!query) {
             return res.status(404).json({ success: false, message: 'Query not found' });
         }

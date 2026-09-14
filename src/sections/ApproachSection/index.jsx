@@ -49,11 +49,7 @@ const steps = [
 
 const ApproachSection = () => {
     // Open the first item by default
-    const [selectedId, setSelectedId] = useState('01');
-    const [hoveredId, setHoveredId] = useState(null);
-
-    // If a row is hovered, expand it; otherwise show selected row (or none if clicked again)
-    const activeId = hoveredId !== null ? hoveredId : selectedId;
+    const [selectedId, setSelectedId] = useState('');
 
     const handleToggle = (id) => {
         setSelectedId((prev) => (prev === id ? null : id));
@@ -143,22 +139,17 @@ const ApproachSection = () => {
                         }}
                     >
                         {steps.map((step, idx) => {
-                            const isExpanded = activeId === step.id;
-                            const isHovered = hoveredId === step.id;
+                            const isExpanded = selectedId === step.id;
                             const isLast = idx === steps.length - 1;
 
                             return (
                                 <Box
                                     key={step.id}
-                                    onMouseEnter={() => setHoveredId(step.id)}
-                                    onMouseLeave={() => setHoveredId(null)}
                                     sx={{
                                         borderBottom: isLast ? 'none' : '1px solid rgba(0, 255, 65, 0.12)',
                                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                         background: isExpanded
                                             ? 'rgba(0, 255, 65, 0.035)'
-                                            : isHovered
-                                            ? 'rgba(255, 255, 255, 0.02)'
                                             : 'transparent',
                                         position: 'relative',
                                         '&::before': {
@@ -169,31 +160,20 @@ const ApproachSection = () => {
                                             bottom: 0,
                                             width: '3px',
                                             background: '#00FF41',
-                                            opacity: isExpanded ? 1 : isHovered ? 0.6 : 0,
+                                            opacity: isExpanded ? 1 : 0,
                                             boxShadow: isExpanded ? '0 0 12px #00FF41' : 'none',
                                             transition: 'opacity 0.25s ease',
                                         },
                                     }}
                                 >
-                                    {/* Header Row — Clickable */}
+                                    {/* Header Row */}
                                     <Box
-                                        onClick={() => handleToggle(step.id)}
-                                        role="button"
-                                        tabIndex={0}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                handleToggle(step.id);
-                                            }
-                                        }}
-                                        aria-expanded={isExpanded}
                                         sx={{
                                             py: { xs: 2.5, sm: 3, md: 3.5 },
                                             px: { xs: 2, sm: 3.5, md: 4.5 },
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'space-between',
-                                            cursor: 'pointer',
                                             userSelect: 'none',
                                             gap: 2,
                                         }}
@@ -222,7 +202,7 @@ const ApproachSection = () => {
                                                         fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' },
                                                         fontWeight: 800,
                                                         letterSpacing: '0.04em',
-                                                        color: isExpanded ? '#ffffff' : isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.85)',
+                                                        color: isExpanded ? '#ffffff' : 'rgba(255, 255, 255, 0.85)',
                                                         textTransform: 'uppercase',
                                                         transition: 'color 0.25s ease',
                                                         flexShrink: 0,
@@ -244,8 +224,16 @@ const ApproachSection = () => {
                                             </Box>
                                         </Box>
 
-                                        {/* Toggle Bracketed Icon [ + ] / [ − ] */}
+                                        {/* Toggle Bracketed Icon Button [ + ] / [ − ] */}
                                         <Box
+                                            component="button"
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleToggle(step.id);
+                                            }}
+                                            aria-label={isExpanded ? `Collapse step ${step.id}` : `Expand step ${step.id}`}
+                                            aria-expanded={isExpanded}
                                             sx={{
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -253,27 +241,36 @@ const ApproachSection = () => {
                                                 fontFamily: 'Fira Code, monospace',
                                                 fontSize: { xs: '0.8rem', sm: '0.9rem' },
                                                 fontWeight: 700,
-                                                color: isExpanded ? '#00FF41' : 'rgba(255, 255, 255, 0.45)',
-                                                border: `1px solid ${isExpanded ? 'rgba(0, 255, 65, 0.4)' : 'rgba(255, 255, 255, 0.12)'}`,
+                                                color: isExpanded ? '#00FF41' : 'rgba(255, 255, 255, 0.55)',
+                                                border: `1px solid ${isExpanded ? '#00FF41' : 'rgba(255, 255, 255, 0.18)'}`,
                                                 borderRadius: '6px',
-                                                px: { xs: 1, sm: 1.5 },
-                                                py: 0.5,
-                                                background: isExpanded ? 'rgba(0, 255, 65, 0.08)' : 'transparent',
-                                                transition: 'all 0.25s ease',
+                                                px: { xs: 1.2, sm: 1.6 },
+                                                py: 0.6,
+                                                background: isExpanded ? 'rgba(0, 255, 65, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                                                boxShadow: isExpanded ? '0 0 12px rgba(0, 255, 65, 0.25)' : 'none',
+                                                cursor: 'pointer',
+                                                outline: 'none',
+                                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                                                 flexShrink: 0,
                                                 '&:hover': {
                                                     borderColor: '#00FF41',
                                                     color: '#00FF41',
+                                                    background: 'rgba(0, 255, 65, 0.12)',
+                                                    boxShadow: '0 0 15px rgba(0, 255, 65, 0.35)',
+                                                    transform: 'scale(1.04)',
+                                                },
+                                                '&:active': {
+                                                    transform: 'scale(0.96)',
                                                 },
                                             }}
                                         >
-                                            <Typography component="span" sx={{ fontSize: 'inherit', fontFamily: 'inherit' }}>[</Typography>
+                                            <Typography component="span" sx={{ fontSize: 'inherit', fontFamily: 'inherit', lineHeight: 1 }}>[</Typography>
                                             {isExpanded ? (
                                                 <RemoveIcon sx={{ fontSize: { xs: 15, sm: 17 } }} />
                                             ) : (
                                                 <AddIcon sx={{ fontSize: { xs: 15, sm: 17 } }} />
                                             )}
-                                            <Typography component="span" sx={{ fontSize: 'inherit', fontFamily: 'inherit' }}>]</Typography>
+                                            <Typography component="span" sx={{ fontSize: 'inherit', fontFamily: 'inherit', lineHeight: 1 }}>]</Typography>
                                         </Box>
                                     </Box>
 

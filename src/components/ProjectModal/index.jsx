@@ -38,15 +38,23 @@ const ProjectModal = ({ open, onClose, project }) => {
         title,
         description,
         techStack = [],
+        githubURL,
         github,
+        liveURL,
         demo,
+        imageURL,
         image,
         longDescription,
+        engineeringOverview,
         overview,
     } = project;
 
-    const detailedDescription = longDescription || description || '';
+    const resolvedGithub = githubURL || github || '';
+    const resolvedLive = liveURL || demo || '';
+    const resolvedImage = imageURL || image || '';
+    const detailedDescription = description || longDescription || '';
     const architecturalNote =
+        engineeringOverview ||
         overview ||
         (project.title === 'Vertex LMS'
             ? 'A personal engineering project exploring how learning content can be structured, searched and navigated more effectively.'
@@ -57,8 +65,10 @@ const ProjectModal = ({ open, onClose, project }) => {
     return (
         <Dialog
             open={open}
-            onClose={onClose}
-            
+            onClose={(event, reason) => {
+                if (reason === 'backdropClick') return;
+                if (onClose) onClose(event, reason);
+            }}
             maxWidth="md"
             fullWidth
             PaperProps={{
@@ -89,6 +99,8 @@ const ProjectModal = ({ open, onClose, project }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box
                         onClick={onClose}
+                        role="button"
+                        aria-label="Close window dot"
                         sx={{
                             width: 12,
                             height: 12,
@@ -117,10 +129,24 @@ const ProjectModal = ({ open, onClose, project }) => {
                     />
                 </Box>
 
+                {/* Window Terminal Header Title */}
+                <Typography
+                    sx={{
+                        fontFamily: 'Fira Code, monospace',
+                        fontSize: '0.75rem',
+                        color: 'rgba(255, 255, 255, 0.45)',
+                        letterSpacing: '0.08em',
+                        userSelect: 'none',
+                    }}
+                >
+                    project_details.sh
+                </Typography>
+
                 {/* Close Button */}
-                {/* <IconButton
+                <IconButton
                     size="small"
                     onClick={onClose}
+                    aria-label="Close modal"
                     sx={{
                         color: 'rgba(255, 255, 255, 0.5)',
                         p: 0.5,
@@ -128,7 +154,7 @@ const ProjectModal = ({ open, onClose, project }) => {
                     }}
                 >
                     <CloseIcon sx={{ fontSize: 18 }} />
-                </IconButton> */}
+                </IconButton>
             </Box>
 
             {/* Modal Body: 2-Column Split Layout */}
@@ -210,10 +236,10 @@ const ProjectModal = ({ open, onClose, project }) => {
                             />
 
                             {/* Image Component */}
-                            {image ? (
+                            {resolvedImage ? (
                                 <Box
                                     component="img"
-                                    src={image}
+                                    src={resolvedImage}
                                     alt={title}
                                     sx={{
                                         position: 'absolute',
@@ -317,11 +343,11 @@ const ProjectModal = ({ open, onClose, project }) => {
 
                                 {/* Links: GitHub & Live External */}
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    {github && (
+                                    {resolvedGithub && (
                                         <Tooltip title="View GitHub Repository" arrow placement="top">
                                             <IconButton
                                                 component="a"
-                                                href={github}
+                                                href={resolvedGithub}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 size="small"
@@ -346,11 +372,11 @@ const ProjectModal = ({ open, onClose, project }) => {
                                         </Tooltip>
                                     )}
 
-                                    {demo && demo !== '#' && (
+                                    {resolvedLive && resolvedLive !== '#' && (
                                         <Tooltip title="Open Live Deployment" arrow placement="top">
                                             <IconButton
                                                 component="a"
-                                                href={demo}
+                                                href={resolvedLive}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 size="small"

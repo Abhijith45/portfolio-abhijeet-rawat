@@ -34,8 +34,8 @@ const querySchema = new mongoose.Schema(
             default: 'unread',
         },
         notes: {
-            type: String,
-            default: '',
+            type: [String],
+            default: [],
         },
     },
     {
