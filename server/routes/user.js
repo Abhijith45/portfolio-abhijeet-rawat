@@ -104,7 +104,8 @@ router.put('/profile', protect, async (req, res) => {
         }
 
         serverCache.clearPattern('user:profile');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.json({
             success: true,

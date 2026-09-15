@@ -31,7 +31,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import CloseIcon from '@mui/icons-material/Close';
-import { projectsApi } from '../../services/api';
+import { projectsApi, apiCache } from '../../services/api';
 
 import Checkbox from '@mui/material/Checkbox';
 import Pagination from '@mui/material/Pagination';
@@ -276,6 +276,7 @@ const ManageProjects = () => {
                 await projectsApi.create(payload);
             }
 
+            apiCache.clear('project');
             handleCloseDialog();
             fetchProjects();
         } catch (err) {
@@ -318,6 +319,7 @@ const ManageProjects = () => {
                 await projectsApi.delete(deleteDialog.id);
                 setSelectedIds((prev) => prev.filter((item) => item !== deleteDialog.id));
             }
+            apiCache.clear('project');
             setDeleteDialog({ open: false, id: null, title: '', isBatch: false, loading: false });
             fetchProjects();
         } catch (err) {

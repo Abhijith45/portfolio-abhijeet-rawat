@@ -133,7 +133,8 @@ router.put('/:id', protect, async (req, res) => {
         }
 
         serverCache.clearPattern('experiences');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.json({ success: true, data: experience });
     } catch (err) {
@@ -151,7 +152,8 @@ router.delete('/:id', protect, async (req, res) => {
         }
 
         serverCache.clearPattern('experiences');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.json({ success: true, message: 'Experience deleted successfully' });
     } catch (err) {

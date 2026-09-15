@@ -221,7 +221,8 @@ router.post('/', protect, async (req, res) => {
         });
 
         serverCache.clearPattern('projects');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.status(201).json({ success: true, data: project });
     } catch (err) {
@@ -283,7 +284,8 @@ router.put('/:id', protect, async (req, res) => {
         }
 
         serverCache.clearPattern('projects');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.json({ success: true, data: project });
     } catch (err) {
@@ -301,7 +303,8 @@ router.delete('/:id', protect, async (req, res) => {
         }
 
         serverCache.clearPattern('projects');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.json({ success: true, message: 'Project deleted successfully' });
     } catch (err) {

@@ -28,7 +28,7 @@ const ProjectsSection = () => {
             try {
                 const res = await projectsApi.getFeatured();
                 if (isMounted) {
-                    if (res.data?.success && res.data?.data && res.data.data.length > 0) {
+                    if (res.data?.success && Array.isArray(res.data?.data)) {
                         setProjects(res.data.data);
                         setHasMore(Boolean(res.data.hasMore));
                     } 

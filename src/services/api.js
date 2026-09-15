@@ -80,13 +80,31 @@ api.interceptors.response.use(
 
         // 2. Invalidate cache on mutations (POST, PUT, DELETE)
         if (['POST', 'PUT', 'DELETE'].includes(method)) {
-            if (url.includes('/api/projects')) apiCache.clear('/api/projects');
-            if (url.includes('/api/technologies')) apiCache.clear('/api/technologies');
-            if (url.includes('/api/reviews')) apiCache.clear('/api/reviews');
-            if (url.includes('/api/queries')) apiCache.clear('/api/queries');
-            if (url.includes('/api/resume')) apiCache.clear('/api/resume');
-            if (url.includes('/api/experiences')) apiCache.clear('/api/experiences');
-            if (url.includes('/api/user')) apiCache.clear('/api/user');
+            if (url.includes('project') || url.includes('/api/projects')) {
+                apiCache.clear('project');
+            }
+            if (url.includes('technolog') || url.includes('/api/technologies')) {
+                apiCache.clear('technolog');
+            }
+            if (url.includes('review') || url.includes('/api/reviews')) {
+                apiCache.clear('review');
+            }
+            if (url.includes('quer') || url.includes('/api/queries')) {
+                apiCache.clear('quer');
+            }
+            if (url.includes('resume') || url.includes('/api/resume')) {
+                apiCache.clear('resume');
+                apiCache.clear('user');
+            }
+            if (url.includes('experience') || url.includes('/api/experiences')) {
+                apiCache.clear('experience');
+            }
+            if (url.includes('user') || url.includes('/api/user')) {
+                apiCache.clear('user');
+            }
+            if (url.includes('purge-cache')) {
+                apiCache.purgeAll();
+            }
         }
 
         return response;

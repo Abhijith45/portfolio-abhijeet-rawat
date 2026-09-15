@@ -162,9 +162,11 @@ class ApiCache {
             return;
         }
 
-        // Pattern clearing
+        // Pattern clearing across memory and localStorage
+        const cleanPattern = String(pattern).toLowerCase();
+
         for (const k of this.memoryCache.keys()) {
-            if (k.includes(pattern)) {
+            if (k.toLowerCase().includes(cleanPattern)) {
                 this.memoryCache.delete(k);
             }
         }
@@ -173,8 +175,11 @@ class ApiCache {
                 const keysToRemove = [];
                 for (let i = 0; i < window.localStorage.length; i++) {
                     const key = window.localStorage.key(i);
-                    if (key && key.startsWith(this.prefix) && key.includes(pattern)) {
-                        keysToRemove.push(key);
+                    if (key && key.startsWith(this.prefix)) {
+                        const subKey = key.slice(this.prefix.length).toLowerCase();
+                        if (subKey.includes(cleanPattern)) {
+                            keysToRemove.push(key);
+                        }
                     }
                 }
                 keysToRemove.forEach((k) => window.localStorage.removeItem(k));

@@ -9,6 +9,7 @@ router.post('/purge-cache', protect, (req, res) => {
         serverCache.clearAll();
         const newVersion = serverCache.getCacheVersion();
 
+        res.setHeader('x-cache-version', String(newVersion));
         res.json({
             success: true,
             message: 'All system and database caches purged successfully. Global cache version updated.',

@@ -164,7 +164,8 @@ router.put('/:id', protect, async (req, res) => {
         }
 
         serverCache.clearPattern('reviews:approved');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.json({ success: true, data: review });
     } catch (err) {
@@ -181,7 +182,8 @@ router.delete('/:id', protect, async (req, res) => {
         }
 
         serverCache.clearPattern('reviews:approved');
-        serverCache.incrementCacheVersion();
+        const newVersion = serverCache.incrementCacheVersion();
+        res.setHeader('x-cache-version', String(newVersion));
 
         res.json({ success: true, message: 'Review deleted successfully' });
     } catch (err) {
