@@ -41,9 +41,6 @@ Thumbs.db
 *.sw?
 
 # ─── Test & Coverage ────────────────────────────────────────────────────────
-**/__tests__/
-**/*.test.js
-**/*.test.jsx
 coverage/
 .vitest/
 server/test-email.js

@@ -6,6 +6,30 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ProjectCard from '../../components/ProjectCard';
 import { projectsApi } from '../../services/api';
 
+export const fallbackProjects = [
+    {
+        _id: 'fallback-1',
+        title: 'Vertex LMS',
+        description: 'Scalable educational platform with microservices architecture.',
+        techStack: ['React', 'Node.js', 'MongoDB', 'Express'],
+        isFeatured: true,
+    },
+    {
+        _id: 'fallback-2',
+        title: 'SyncWA',
+        description: 'Automated CRM & WhatsApp multi-channel messaging platform.',
+        techStack: ['React', 'WebSockets', 'Tailwind CSS'],
+        isFeatured: true,
+    },
+    {
+        _id: 'fallback-3',
+        title: 'Lead Generation Platform',
+        description: 'High-throughput enterprise lead distribution pipeline.',
+        techStack: ['React', 'Node.js', 'Redis'],
+        isFeatured: true,
+    },
+];
+
 const containerVariants = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.1 } },
@@ -28,13 +52,18 @@ const ProjectsSection = () => {
             try {
                 const res = await projectsApi.getFeatured();
                 if (isMounted) {
-                    if (res.data?.success && Array.isArray(res.data?.data)) {
+                    if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
                         setProjects(res.data.data);
                         setHasMore(Boolean(res.data.hasMore));
-                    } 
+                    } else {
+                        setProjects(fallbackProjects);
+                    }
                 }
             } catch (err) {
                 console.warn('Using fallback project data:', err.message);
+                if (isMounted) {
+                    setProjects(fallbackProjects);
+                }
             } finally {
                 if (isMounted) {
                     setLoading(false);

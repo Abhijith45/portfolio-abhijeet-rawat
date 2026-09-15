@@ -33,4 +33,8 @@ if (typeof window !== 'undefined') {
             };
         };
     }
+
+    if (!window.alert) {
+        window.alert = () => {};
+    }
 }
