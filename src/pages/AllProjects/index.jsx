@@ -6,7 +6,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProjectCard from '../../components/ProjectCard';
-import { fallbackProjects } from '../../sections/ProjectsSection';
 import { projectsApi } from '../../services/api';
 import useSEO from '../../hooks/useSEO';
 
@@ -52,15 +51,10 @@ const AllProjects = () => {
                 if (isMounted) {
                     if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
                         setProjects(res.data.data);
-                    } else {
-                        setProjects(fallbackProjects);
                     }
                 }
             } catch (err) {
                 console.error('Failed to load all projects:', err);
-                if (isMounted) {
-                    setProjects(fallbackProjects);
-                }
             } finally {
                 if (isMounted) {
                     setLoading(false);

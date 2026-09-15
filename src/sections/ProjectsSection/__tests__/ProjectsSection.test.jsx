@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import ProjectsSection, { fallbackProjects } from '../index';
+import ProjectsSection from '../index';
 import * as apiModule from '../../../services/api';
 
 // Mock the projectsApi
@@ -36,32 +36,36 @@ describe('ProjectsSection - Production Grade Test Suite', () => {
     });
 
     describe('1. Loading & Initial Rendering', () => {
-        it('renders loading spinner initially while fetching projects', () => {
+        it('renders null initially while fetching projects', () => {
             // Keep promise pending
             apiModule.projectsApi.getFeatured.mockReturnValue(new Promise(() => {}));
-            renderProjectsSection();
+            const { container } = renderProjectsSection();
 
-            expect(screen.getByRole('progressbar')).toBeInTheDocument();
-            expect(screen.getByText('// MY WORK //')).toBeInTheDocument();
-            expect(screen.getByRole('heading', { level: 2, name: /Featured Projects/i })).toBeInTheDocument();
+            expect(container.firstChild).toBeNull();
+            expect(screen.queryByText('// MY WORK //')).not.toBeInTheDocument();
+            expect(screen.queryByRole('heading', { level: 2, name: /Featured Projects/i })).not.toBeInTheDocument();
         });
 
-        it('renders section title and subtitle correctly after loading', async () => {
+        it('renders section title and subtitle correctly after loading with projects', async () => {
             apiModule.projectsApi.getFeatured.mockResolvedValueOnce({
-                data: { success: true, count: 3, hasMore: false, data: fallbackProjects.slice(0, 3) },
+                data: {
+                    success: true,
+                    count: 1,
+                    hasMore: false,
+                    data: [{ _id: 'p1', title: 'Test Project', description: 'Test Desc', techStack: ['React'] }],
+                },
             });
             renderProjectsSection();
 
             await waitFor(() => {
-                expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+                expect(screen.getByText('// MY WORK //')).toBeInTheDocument();
             });
 
-            expect(screen.getByText('// MY WORK //')).toBeInTheDocument();
             expect(screen.getByRole('heading', { level: 2, name: /Featured Projects/i })).toBeInTheDocument();
         });
     });
 
-    describe('2. Data Fetching & Dynamic vs Fallback Rendering', () => {
+    describe('2. Data Fetching & Conditional Visibility (> 0 projects)', () => {
         it('renders dynamic projects returned from API', async () => {
             const mockDbProjects = [
                 {
@@ -102,28 +106,32 @@ describe('ProjectsSection - Production Grade Test Suite', () => {
             expect(screen.getByText('PyTorch')).toBeInTheDocument();
         });
 
-        it('gracefully falls back to fallbackProjects when API returns an empty array', async () => {
+        it('does NOT render component (renders null) when API returns 0 projects', async () => {
             apiModule.projectsApi.getFeatured.mockResolvedValueOnce({
                 data: { success: true, count: 0, hasMore: false, data: [] },
             });
 
-            renderProjectsSection();
+            const { container } = renderProjectsSection();
 
             await waitFor(() => {
-                expect(screen.getByText('Vertex LMS')).toBeInTheDocument();
-                expect(screen.getByText('SyncWA')).toBeInTheDocument();
+                expect(screen.queryByText('// MY WORK //')).not.toBeInTheDocument();
             });
+
+            expect(container.firstChild).toBeNull();
+            expect(screen.queryByText('Vertex LMS')).not.toBeInTheDocument();
         });
 
-        it('gracefully falls back to fallbackProjects when API call rejects with error', async () => {
+        it('does NOT render component (renders null) when API call rejects with error', async () => {
             apiModule.projectsApi.getFeatured.mockRejectedValueOnce(new Error('Database offline'));
 
-            renderProjectsSection();
+            const { container } = renderProjectsSection();
 
             await waitFor(() => {
-                expect(screen.getByText('Vertex LMS')).toBeInTheDocument();
-                expect(screen.getByText('Lead Generation Platform')).toBeInTheDocument();
+                expect(screen.queryByText('// MY WORK //')).not.toBeInTheDocument();
             });
+
+            expect(container.firstChild).toBeNull();
+            expect(screen.queryByText('Vertex LMS')).not.toBeInTheDocument();
         });
     });
 

@@ -1,34 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Typography, Grid, CircularProgress, Button } from '@mui/material';
+import { Box, Container, Typography, Grid, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ProjectCard from '../../components/ProjectCard';
 import { projectsApi } from '../../services/api';
-
-export const fallbackProjects = [
-    {
-        _id: 'fallback-1',
-        title: 'Vertex LMS',
-        description: 'Scalable educational platform with microservices architecture.',
-        techStack: ['React', 'Node.js', 'MongoDB', 'Express'],
-        isFeatured: true,
-    },
-    {
-        _id: 'fallback-2',
-        title: 'SyncWA',
-        description: 'Automated CRM & WhatsApp multi-channel messaging platform.',
-        techStack: ['React', 'WebSockets', 'Tailwind CSS'],
-        isFeatured: true,
-    },
-    {
-        _id: 'fallback-3',
-        title: 'Lead Generation Platform',
-        description: 'High-throughput enterprise lead distribution pipeline.',
-        techStack: ['React', 'Node.js', 'Redis'],
-        isFeatured: true,
-    },
-];
 
 const containerVariants = {
     hidden: {},
@@ -56,13 +32,13 @@ const ProjectsSection = () => {
                         setProjects(res.data.data);
                         setHasMore(Boolean(res.data.hasMore));
                     } else {
-                        setProjects(fallbackProjects);
+                        setProjects([]);
                     }
                 }
             } catch (err) {
-                console.warn('Using fallback project data:', err.message);
+                console.warn('Failed to fetch featured projects:', err.message);
                 if (isMounted) {
-                    setProjects(fallbackProjects);
+                    setProjects([]);
                 }
             } finally {
                 if (isMounted) {
@@ -76,6 +52,11 @@ const ProjectsSection = () => {
             isMounted = false;
         };
     }, []);
+
+    // Do not render this section if loading or if there are 0 featured projects in DB
+    if (loading || !projects || projects.length === 0) {
+        return null;
+    }
 
     return (
         <Box id="projects" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
@@ -109,64 +90,56 @@ const ProjectsSection = () => {
                     </Typography>
                 </motion.div>
 
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                        <CircularProgress sx={{ color: '#00FF41' }} />
-                    </Box>
-                ) : (
-                    <>
-                        {/* 3-Column Responsive Grid matching Navbar width */}
-                        <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, margin: '-50px' }}
-                        >
-                            <Grid container spacing={{ xs: 2.5, sm: 3, md: 4 }}>
-                                {projects.map((project, index) => (
-                                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index}>
-                                        <motion.div variants={cardVariants} style={{ height: '100%' }}>
-                                            <ProjectCard project={project} />
-                                        </motion.div>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </motion.div>
-
-                        {/* "View All" Button shown if more than 6 projects */}
-                        {hasMore && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 5, md: 7 } }}>
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                    <Button
-                                        onClick={() => navigate('/all-projects')}
-                                        endIcon={<ArrowForwardIcon />}
-                                        sx={{
-                                            px: 3.5,
-                                            py: 1.2,
-                                            background: '#07080c',
-                                            color: '#00FF41',
-                                            border: '1px solid #00FF41',
-                                            borderRadius: '6px',
-                                            fontFamily: 'Fira Code, monospace',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 700,
-                                            letterSpacing: '0.1em',
-                                            textTransform: 'uppercase',
-                                            boxShadow: '0 0 15px rgba(0, 255, 65, 0.15)',
-                                            '&:hover': {
-                                                background: '#00FF41',
-                                                color: '#000',
-                                                boxShadow: '0 0 25px rgba(0, 255, 65, 0.4)',
-                                            },
-                                            transition: 'all 0.3s ease',
-                                        }}
-                                    >
-                                        VIEW ALL 
-                                    </Button>
+                {/* 3-Column Responsive Grid matching Navbar width */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: '-50px' }}
+                >
+                    <Grid container spacing={{ xs: 2.5, sm: 3, md: 4 }}>
+                        {projects.map((project, index) => (
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index}>
+                                <motion.div variants={cardVariants} style={{ height: '100%' }}>
+                                    <ProjectCard project={project} />
                                 </motion.div>
-                            </Box>
-                        )}
-                    </>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </motion.div>
+
+                {/* "View All" Button shown if more than 6 projects */}
+                {hasMore && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 5, md: 7 } }}>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                                onClick={() => navigate('/all-projects')}
+                                endIcon={<ArrowForwardIcon />}
+                                sx={{
+                                    px: 3.5,
+                                    py: 1.2,
+                                    background: '#07080c',
+                                    color: '#00FF41',
+                                    border: '1px solid #00FF41',
+                                    borderRadius: '6px',
+                                    fontFamily: 'Fira Code, monospace',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.1em',
+                                    textTransform: 'uppercase',
+                                    boxShadow: '0 0 15px rgba(0, 255, 65, 0.15)',
+                                    '&:hover': {
+                                        background: '#00FF41',
+                                        color: '#000',
+                                        boxShadow: '0 0 25px rgba(0, 255, 65, 0.4)',
+                                    },
+                                    transition: 'all 0.3s ease',
+                                }}
+                            >
+                                VIEW ALL 
+                            </Button>
+                        </motion.div>
+                    </Box>
                 )}
             </Container>
         </Box>

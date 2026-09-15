@@ -352,13 +352,10 @@ const ManageProjects = () => {
     return (
         <Box>
             {/* Header */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
                 <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 800, color: '#fff' }}>
-                        Manage Projects
-                    </Typography>
-                    <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#00FF41' }}>
-                        // ARCHITECTURE, MULTI-STEP CREATION &amp; FEATURED REGISTRY ({projects.length} TOTAL)
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#fff' }}>
+                        Manage Projects ({projects.length} TOTAL)
                     </Typography>
                 </Box>
                 <Button
@@ -387,7 +384,7 @@ const ManageProjects = () => {
                 <Paper
                     sx={{
                         mb: 3,
-                        p: 2,
+                        p: 1,
                         background: 'rgba(0, 255, 65, 0.05)',
                         border: '1px solid rgba(0, 255, 65, 0.3)',
                         borderRadius: '8px',
@@ -403,6 +400,7 @@ const ManageProjects = () => {
                             {selectedIds.length} OF {projects.length} PROJECTS SELECTED
                         </Typography>
                         <Button
+                            disableRipple
                             size="small"
                             onClick={handleSelectAllPage}
                             sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', borderColor: 'rgba(255,255,255,0.2)' }}
@@ -410,12 +408,13 @@ const ManageProjects = () => {
                         >
                             {isAllPageSelected ? 'Deselect Current Page' : 'Select Current Page'}
                         </Button>
-                        <Button size="small" onClick={() => setSelectedIds([])} sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' }}>
+                        <Button disableRipple size="small" onClick={() => setSelectedIds([])} sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' }}>
                             Clear Selection
                         </Button>
                     </Box>
                     <Button
                         variant="contained"
+                        disableRipple
                         startIcon={<DeleteIcon />}
                         onClick={handleOpenBatchDelete}
                         sx={{
@@ -423,7 +422,7 @@ const ManageProjects = () => {
                             color: '#fff',
                             fontWeight: 700,
                             fontSize: '0.8rem',
-                            '&:hover': { background: '#ff7875' },
+                            '&:hover': { background: '#ff4d4f' },
                         }}
                     >
                         Delete Selected ({selectedIds.length})
@@ -500,46 +499,46 @@ const ManageProjects = () => {
                                                 sx={{ width: '100%', height: 160, objectFit: 'cover' }}
                                             />
                                         )}
-                                        <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                        <CardContent sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                             <Box>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', pl: 4 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                         <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
                                                             {proj.title}
                                                         </Typography>
-                                                        {cardFeatured && (
-                                                            <Chip
-                                                                icon={<StarIcon sx={{ '&&': { color: '#000', fontSize: 14 } }} />}
-                                                                label="FEATURED"
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5}}>
+                                                            {cardFeatured && (
+                                                                <Chip
+                                                                    icon={<StarIcon sx={{ '&&': { color: '#000', fontSize: 14 } }} />}
+                                                                    label=""
+                                                                    size="small"
+                                                                    sx={{
+                                                                        background: '#00FF41',
+                                                                        color: '#000',
+                                                                        fontWeight: 800,
+                                                                        fontFamily: 'Fira Code, monospace',
+                                                                        fontSize: '0.62rem',
+                                                                        height: 20,
+                                                                    }}
+                                                                />
+                                                            )}
+                                                            <IconButton
                                                                 size="small"
-                                                                sx={{
-                                                                    background: '#00FF41',
-                                                                    color: '#000',
-                                                                    fontWeight: 800,
-                                                                    fontFamily: 'Fira Code, monospace',
-                                                                    fontSize: '0.62rem',
-                                                                    height: 20,
-                                                                }}
-                                                            />
-                                                        )}
-                                                    </Box>
-                                                    <Box>
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={() => handleOpenDialog(proj)}
-                                                            sx={{ color: '#00FF41', mr: 0.5 }}
-                                                            aria-label="Edit project"
-                                                        >
-                                                            <EditIcon fontSize="small" />
-                                                        </IconButton>
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={() => handleOpenSingleDelete(proj._id, proj.title)}
-                                                            sx={{ color: '#ff6b6b' }}
-                                                            aria-label="Delete project"
-                                                        >
-                                                            <DeleteIcon fontSize="small" />
-                                                        </IconButton>
+                                                                onClick={() => handleOpenDialog(proj)}
+                                                                sx={{ color: '#00FF41'}}
+                                                                aria-label="Edit project"
+                                                            >
+                                                                <EditIcon fontSize="small" />
+                                                            </IconButton>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => handleOpenSingleDelete(proj._id, proj.title)}
+                                                                sx={{ color: '#ff6b6b' }}
+                                                                aria-label="Delete project"
+                                                            >
+                                                                <DeleteIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Box>
                                                     </Box>
                                                 </Box>
 
@@ -567,9 +566,10 @@ const ManageProjects = () => {
                                                 </Stack>
                                             </Box>
 
-                                            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', pt: 1, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center',justifyContent:'space-around', pt: 1, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                                                 {cardGithub && (
                                                     <Button
+                                                        variant='text'
                                                         size="small"
                                                         href={cardGithub}
                                                         target="_blank"
@@ -581,6 +581,7 @@ const ManageProjects = () => {
                                                 )}
                                                 {cardLive && (
                                                     <Button
+                                                        variant='text'
                                                         size="small"
                                                         href={cardLive}
                                                         target="_blank"

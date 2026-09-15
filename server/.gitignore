@@ -12,5 +12,11 @@ node_modules/
 logs/
 *.log
 
-# Local test scripts
+# Local test scripts & tests
+tests/
+__tests__/
+*.test.js
+*.spec.js
 test-email.js
+coverage/
+.vitest/
