@@ -1,12 +1,22 @@
 import React from 'react';
 import { Box, Container, Typography, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
+import useSEO from '../../hooks/useSEO';
 import TechStackSection from '../../sections/TechStackSection';
 import ExperienceTimeline from '../../sections/ExperienceTimeline';
 import EducationSection from '../../sections/EducationSection';
 import ReviewSection from '../../sections/ReviewSection';
 
 const About = () => {
+    useSEO({
+        title: 'About Abhijeet Rawat — Full Stack Developer with 1.5+ Years Experience',
+        description:
+            'Learn about Abhijeet Rawat — Full Stack Developer based in Noida, India. 1.5+ years of professional experience with MERN stack, REST APIs, B2B SaaS, and automation systems. Explore his career timeline, education, and engineering philosophy.',
+        canonical: 'https://abhijeet-rawat-portfolio.netlify.app/about',
+        keywords:
+            'Abhijeet Rawat About, Full Stack Developer Biography, MERN Developer Career, Software Engineer Noida India, Backend Developer Experience, Node.js React Developer Profile',
+    });
+
     return (
         <>
             {/* Hero Section */}

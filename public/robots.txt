@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin/login
+Disallow: /admin/dashboard
+Disallow: /admin/projects
+Disallow: /admin/experiences
+Disallow: /admin/technologies
+Disallow: /admin/queries
+Disallow: /admin/reviews
+Disallow: /admin/resume
+
+Sitemap: https://abhijeet-rawat-portfolio.netlify.app/sitemap.xml

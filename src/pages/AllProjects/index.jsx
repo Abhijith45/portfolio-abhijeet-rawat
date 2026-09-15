@@ -7,6 +7,7 @@ import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrow
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ProjectCard from '../../components/ProjectCard';
 import { projectsApi } from '../../services/api';
+import useSEO from '../../hooks/useSEO';
 
 const INITIAL_PROJECTS = 6;
 const BATCH_SIZE = 3;
@@ -24,6 +25,15 @@ const cardVariants = {
 const MotionDiv = motion.div;
 
 const AllProjects = () => {
+    useSEO({
+        title: 'Projects — Abhijeet Rawat | Full Stack Developer Portfolio',
+        description:
+            'Explore the full portfolio of Abhijeet Rawat — Full Stack Developer. Projects include B2B SaaS platforms, lead generation systems, CRM tools, REST APIs, and automation built with React, Node.js, MongoDB, and Express.',
+        canonical: 'https://abhijeet-rawat-portfolio.netlify.app/all-projects',
+        keywords:
+            'Full Stack Developer Portfolio Projects, React Projects, Node.js Projects, MERN Stack Projects, SaaS Projects India, Web Application Portfolio, Abhijeet Rawat Projects',
+    });
+
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [visibleCount, setVisibleCount] = useState(INITIAL_PROJECTS);
