@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Box,
     Typography,
@@ -44,26 +44,30 @@ const ManageQueries = () => {
         loading: false,
     });
 
-    const fetchQueries = async () => {
+    const fetchQueries = useCallback(async (isMountedRef = { current: true }) => {
         try {
             setLoading(true);
             const res = await queriesApi.getAll(filterStatus ? { status: filterStatus } : {});
-            if (res.data?.success) {
+            if (isMountedRef.current && res.data?.success) {
                 setQueries(res.data.data);
                 setUnreadCount(res.data.unreadCount);
             }
         } catch (err) {
-            setError('Failed to load queries: ' + err.message);
+            if (isMountedRef.current) setError('Failed to load queries: ' + err.message);
         } finally {
             setLoading(false);
         }
-    };
+    }, [filterStatus]);
 
     useEffect(() => {
+        const isMountedRef = { current: true };
         setPage(1);
         setSelectedIds([]);
-        fetchQueries();
-    }, [filterStatus]);
+        fetchQueries(isMountedRef);
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, [fetchQueries]);
 
     const handleStatusChange = async (id, newStatus) => {
         try {
@@ -134,7 +138,8 @@ const ManageQueries = () => {
 
     const totalPages = Math.ceil(queries.length / ITEMS_PER_PAGE) || 1;
     const paginatedQueries = queries.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-    const isAllPageSelected = paginatedQueries.length > 0 && paginatedQueries.every((q) => selectedIds.includes(q._id));
+    const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+    const isAllPageSelected = paginatedQueries.length > 0 && paginatedQueries.every((q) => selectedIdSet.has(q._id));
 
     const handleSelectAllPage = () => {
         if (isAllPageSelected) {
@@ -167,7 +172,7 @@ const ManageQueries = () => {
                         Contact Inquiries
                     </Typography>
                     <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#00FF41' }}>
-                        // CLIENT MESSAGES &amp; OPPORTUNITIES ({unreadCount} UNREAD, {queries.length} TOTAL)
+                        {`// CLIENT MESSAGES & OPPORTUNITIES (${unreadCount} UNREAD, ${queries.length} TOTAL)`}
                     </Typography>
                 </Box>
 
@@ -273,7 +278,7 @@ const ManageQueries = () => {
                     <Grid container spacing={2.5}>
                         {paginatedQueries.map((q) => {
                             const style = getStatusColor(q.status);
-                            const isSelected = selectedIds.includes(q._id);
+                            const isSelected = selectedIdSet.has(q._id);
 
                             return (
                                 <Grid size={{ xs: 12, md: 6 }} key={q._id}>
@@ -348,7 +353,7 @@ const ManageQueries = () => {
                                             {Array.isArray(q.notes) && q.notes.length > 0 && (
                                                 <Box sx={{ my: 1.5, p: 1.5, borderRadius: '4px', background: 'rgba(255, 255, 255, 0.03)', border: '1px dashed rgba(0, 255, 65, 0.2)' }}>
                                                     <Typography sx={{ color: '#00FF41', fontSize: '0.72rem', fontFamily: 'Fira Code, monospace', mb: 0.5 }}>
-                                                        // ADMIN_NOTES ({q.notes.length}):
+                                                        {`// ADMIN_NOTES (${q.notes.length}):`}
                                                     </Typography>
                                                     {q.notes.map((note, nIdx) => (
                                                         <Typography key={nIdx} sx={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.8rem', pl: 1, borderLeft: '2px solid #00FF41', mb: 0.5 }}>

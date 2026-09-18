@@ -192,7 +192,16 @@ const Navbar = () => {
 
                     {/* Mobile Menu Icon */}
                     {isMobile && (
-                        <IconButton onClick={() => setDrawerOpen(true)} sx={{ color: '#00FF41' }}>
+                        <IconButton
+                            onClick={() => setDrawerOpen(true)}
+                            aria-label="Open mobile navigation menu"
+                            sx={{
+                                color: '#00FF41',
+                                p: 1,
+                                minWidth: 44,
+                                minHeight: 44,
+                            }}
+                        >
                             <MenuIcon />
                         </IconButton>
                     )}
@@ -214,7 +223,16 @@ const Navbar = () => {
             >
                 <Box sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 4 }}>
-                        <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: '#fff' }}>
+                        <IconButton
+                            onClick={() => setDrawerOpen(false)}
+                            aria-label="Close navigation menu"
+                            sx={{
+                                color: '#fff',
+                                p: 1,
+                                minWidth: 44,
+                                minHeight: 44,
+                            }}
+                        >
                             <CloseIcon />
                         </IconButton>
                     </Box>

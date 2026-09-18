@@ -99,7 +99,7 @@ const AdminDashboard = () => {
                     System Overview
                 </Typography>
                 <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#00FF41' }}>
-                    // PORTFOLIO METRICS & CONTENT STATUS
+                    {'// PORTFOLIO METRICS & CONTENT STATUS'}
                 </Typography>
             </Box>
 

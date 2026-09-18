@@ -173,7 +173,7 @@ const ManageResume = () => {
                         Profile & Social Links Configuration
                     </Typography>
                     <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#00FF41' }}>
-                        // MANAGE RESUME, CONTACT CHANNELS & SOCIAL PROFILES
+                        {'// MANAGE RESUME, CONTACT CHANNELS & SOCIAL PROFILES'}
                     </Typography>
                 </Box>
 

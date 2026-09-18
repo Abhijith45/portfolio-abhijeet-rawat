@@ -96,7 +96,7 @@ const EducationSection = () => {
     }, []);
 
     return (
-        <Box id="education" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+        <Box id="education" sx={{ py: { xs: 5, sm: 7, md: 10 }, position: 'relative' }}>
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 {/* Section Header */}
                 <motion.div initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -110,7 +110,7 @@ const EducationSection = () => {
                             mb: 1.5,
                         }}
                     >
-                        // About My
+                        {'// About My'}
                     </Typography>
                     <Typography
                         variant="h2"
@@ -143,7 +143,7 @@ const EducationSection = () => {
 
                         return (
                             <Box
-                                key={index}
+                                key={item._id || item.degree || item.institution}
                                 ref={(el) => (cardRefs.current[index] = el)}
                                 sx={{ width: '100%' }}
                             >

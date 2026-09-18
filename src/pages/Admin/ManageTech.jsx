@@ -164,7 +164,7 @@ const ManageTech = () => {
                         Manage Technologies
                     </Typography>
                     <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#00FF41' }}>
-                        // SKILLS, FRAMEWORKS & TOOLS IN TRADE ({technologies.length} TOTAL)
+                        {`// SKILLS, FRAMEWORKS & TOOLS IN TRADE (${technologies.length} TOTAL)`}
                     </Typography>
                 </Box>
                 <Button

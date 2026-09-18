@@ -114,7 +114,7 @@ const ExperienceTimeline = () => {
     }, [experiences]);
 
     return (
-        <Box id="experience" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+        <Box id="experience" sx={{ py: { xs: 5, sm: 7, md: 10 }, position: 'relative' }}>
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 {/* Section Header */}
                 <motion.div initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -128,7 +128,7 @@ const ExperienceTimeline = () => {
                             mb: 1.5,
                         }}
                     >
-                        // About My
+                        {'// About My'}
                     </Typography>
                     <Typography
                         variant="h2"
@@ -159,7 +159,7 @@ const ExperienceTimeline = () => {
 
                         return (
                             <Box
-                                key={exp._id || index}
+                                key={exp._id || (exp.company && exp.role ? `${exp.company}-${exp.role}` : exp.company) || exp.period}
                                 ref={(el) => (cardRefs.current[index] = el)}
                                 sx={{
                                     width: { xs: '100%', md: '58%' },
@@ -286,7 +286,7 @@ const ExperienceTimeline = () => {
                                                         fontWeight: 600,
                                                     }}
                                                 >
-                                                    // COMPANY: {exp.company}
+                                                    {`// COMPANY: ${exp.company}`}
                                                 </Typography>
 
                                                 {/* Location */}
@@ -316,7 +316,7 @@ const ExperienceTimeline = () => {
                                                 zIndex: 2,
                                             }}
                                         >
-                                            {exp.responsibilities.map((resp, rIdx) => (
+                                            {(exp.responsibilities || exp.description || []).map((resp, rIdx) => (
                                                 <Box
                                                     key={rIdx}
                                                     sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}

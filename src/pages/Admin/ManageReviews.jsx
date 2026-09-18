@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box,
     Typography,
@@ -59,6 +59,7 @@ const ManageReviews = () => {
     // Pagination slice
     const totalPages = Math.ceil(reviews.length / ITEMS_PER_PAGE);
     const paginatedReviews = reviews.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+    const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
     const handlePageChange = (event, value) => {
         setPage(value);
@@ -146,7 +147,7 @@ const ManageReviews = () => {
                     Manage Reviews
                 </Typography>
                 <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#00FF41' }}>
-                    // MODERATE CLIENT TESTIMONIALS ({pendingCount} PENDING APPROVAL)
+                    {`// MODERATE CLIENT TESTIMONIALS (${pendingCount} PENDING APPROVAL)`}
                 </Typography>
             </Box>
 
@@ -251,7 +252,7 @@ const ManageReviews = () => {
                     {/* 3-column grid for Reviews */}
                     <Grid container spacing={2.5}>
                         {paginatedReviews.map((r) => {
-                            const isSelected = selectedIds.includes(r._id);
+                            const isSelected = selectedIdSet.has(r._id);
                             return (
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={r._id}>
                                     <Card

@@ -70,7 +70,7 @@ const ReviewSection = () => {
     const visibleReviews = reviews.slice(currentIndex, currentIndex + itemsPerPage);
 
     return (
-        <Box sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+        <Box sx={{ py: { xs: 5, sm: 7, md: 10 }, position: 'relative' }}>
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 {/* Header with Title and Scroll < > buttons */}
                 <Box
@@ -91,7 +91,7 @@ const ReviewSection = () => {
                                 mb: 1,
                             }}
                         >
-                            /* CLIENT FEEDBACK */
+                            {'/* CLIENT FEEDBACK */'}
                         </Typography>
                         <Typography
                             variant="h2"
@@ -162,12 +162,20 @@ const ReviewSection = () => {
                 </Box>
 
                 {/* Reviews Display Grid */}
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                        <CircularProgress sx={{ color: '#00FF41' }} />
-                    </Box>
-                ) : (
-                    <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait">
+                    {loading ? (
+                        <motion.div
+                            key="loading"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                                <CircularProgress sx={{ color: '#00FF41' }} />
+                            </Box>
+                        </motion.div>
+                    ) : (
                         <motion.div
                             key={currentIndex}
                             initial={{ opacity: 0, x: 20 }}
@@ -193,8 +201,8 @@ const ReviewSection = () => {
                                 ))}
                             </Box>
                         </motion.div>
-                    </AnimatePresence>
-                )}
+                    )}
+                </AnimatePresence>
             </Container>
         </Box>
     );

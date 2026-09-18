@@ -68,7 +68,7 @@ const HeroSection = () => {
                                     opacity: 0.8,
                                 }}
                             >
-                            // Developer Portfolio
+                                {'// Developer Portfolio'}
                             </Typography>
                         </motion.div>
 
@@ -128,7 +128,7 @@ const HeroSection = () => {
                                 'for messy problems.',
                             ].map((line, i) => (
                                 <motion.div
-                                    key={i}
+                                    key={line}
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.6, delay: i * 0.1 + 0.2 }}
@@ -321,9 +321,9 @@ const HeroSection = () => {
                                         borderBottom: '1px solid rgba(255,255,255,0.05)',
                                     }}
                                 >
-                                    {['#ff5f57', '#febc2e', '#28c840'].map((color, i) => (
+                                    {['#ff5f57', '#febc2e', '#28c840'].map((color) => (
                                         <Box
-                                            key={i}
+                                            key={color}
                                             sx={{ width: 10, height: 10, borderRadius: '50%', background: color }}
                                         />
                                     ))}
@@ -359,7 +359,7 @@ const HeroSection = () => {
                                         { color: 'rgba(255,255,255,0.5)', content: '  engineering:', rest: ' ["Agile Methodologies", "Automation"],', restColor: '#c3e88d' },
                                         { color: 'rgba(255,255,255,0.7)', content: '};' },
                                     ].map((line, i) => (
-                                        <Box key={i} sx={{ display: 'flex', alignItems: 'baseline' }}>
+                                        <Box key={line.content} sx={{ display: 'flex', alignItems: 'baseline' }}>
                                             <Typography
                                                 sx={{
                                                     color: 'rgba(255,255,255,0.15)',

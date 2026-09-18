@@ -174,7 +174,7 @@ const ManageExperiences = () => {
                         Manage Work Experiences
                     </Typography>
                     <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#00FF41' }}>
-                        // WORK TIMELINE & CAREER MILESTONES
+                        {'// WORK TIMELINE & CAREER MILESTONES'}
                     </Typography>
                 </Box>
                 <Button
@@ -230,9 +230,9 @@ const ManageExperiences = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 300 }}>
-                                                    {(exp.skills || []).slice(0, 4).map((s, idx) => (
+                                                    {(exp.skills || []).slice(0, 4).map((s) => (
                                                         <Chip
-                                                            key={idx}
+                                                            key={s}
                                                             label={s}
                                                             size="small"
                                                             sx={{

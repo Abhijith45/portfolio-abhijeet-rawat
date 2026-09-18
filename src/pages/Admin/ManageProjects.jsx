@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box,
     Typography,
@@ -350,7 +350,8 @@ const ManageProjects = () => {
 
     const totalPages = Math.ceil(projects.length / ITEMS_PER_PAGE) || 1;
     const paginatedProjects = projects.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-    const isAllPageSelected = paginatedProjects.length > 0 && paginatedProjects.every((p) => selectedIds.includes(p._id));
+    const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+    const isAllPageSelected = paginatedProjects.length > 0 && paginatedProjects.every((p) => selectedIdSet.has(p._id));
 
     const handleSelectAllPage = () => {
         if (isAllPageSelected) {
@@ -467,7 +468,7 @@ const ManageProjects = () => {
                             const cardLive = proj.liveURL || proj.demo;
                             const cardFeatured = proj.isFeatured !== undefined ? proj.isFeatured : proj.featured;
                             const cardVisible = proj.isVisible !== undefined ? proj.isVisible : proj.visible !== false;
-                            const isSelected = selectedIds.includes(proj._id);
+                            const isSelected = selectedIdSet.has(proj._id);
 
                             return (
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={proj._id}>
@@ -942,7 +943,7 @@ const ManageProjects = () => {
                             {/* Image Selection Section */}
                             <Box sx={{ border: '1px solid rgba(0,255,65,0.18)', p: 2, borderRadius: '6px', background: 'rgba(0,0,0,0.3)' }}>
                                 <Typography sx={{ fontFamily: 'Fira Code, monospace', fontSize: '0.75rem', color: '#00FF41', mb: 1.5 }}>
-                                    // PROJECT COVER IMAGE
+                                    {'// PROJECT COVER IMAGE'}
                                 </Typography>
 
                                 {formData.imageUploaded ? (

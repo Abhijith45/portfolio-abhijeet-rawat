@@ -140,3 +140,13 @@ canvas {
   max-width: 100%;
   height: auto;
 }
+
+/* Accessibility: Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .blink {
+    animation: none !important;
+  }
+}

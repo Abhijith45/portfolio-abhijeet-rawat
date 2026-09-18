@@ -158,13 +158,13 @@ const CyberContactSection = () => {
     return (
         <Box
             sx={{
-                py: { xs: 3, md: 6 },
+                py: { xs: 5, sm: 6, md: 8 },
                 position: 'relative',
                 overflow: 'hidden',
             }}
         >
             <Container maxWidth="lg" sx={{ px: { xs: 2.5, sm: 4, md: 5 } }}>
-                <Grid container spacing={{ xs: 6, md: 8 }} alignItems="flex-start">
+                <Grid container spacing={{ xs: 3.5, md: 8 }} alignItems="flex-start">
                     {/* LEFT COLUMN: Headings & Social Icons */}
                     <Grid size={{ xs: 12, md: 6 }}>
                         <motion.div
@@ -184,7 +184,7 @@ const CyberContactSection = () => {
                                     fontWeight: 500,
                                 }}
                             >
-                                // CONTACT
+                                {'// CONTACT'}
                             </Typography>
 
                             {/* Big Bold Headline */}
@@ -192,7 +192,7 @@ const CyberContactSection = () => {
                                 variant="h2"
                                 sx={{
                                     fontFamily: 'Inter, sans-serif',
-                                    fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.2rem' },
+                                    fontSize: { xs: '2.2rem', sm: '3.2rem', md: '4.2rem' },
                                     fontWeight: 900,
                                     lineHeight: 1.08,
                                     letterSpacing: '-0.03em',
@@ -206,12 +206,12 @@ const CyberContactSection = () => {
                                 variant="h1"
                                 sx={{
                                     fontFamily: 'Inter, sans-serif',
-                                    fontSize: { xs: '3rem', sm: '4.2rem', md: '5.2rem' },
+                                    fontSize: { xs: '2.4rem', sm: '3.6rem', md: '5.2rem' },
                                     fontWeight: 900,
                                     lineHeight: 1.08,
                                     letterSpacing: '-0.03em',
                                     color: '#00FF41',
-                                    mb: 4,
+                                    mb: { xs: 2.5, md: 4 },
                                 }}
                             >
                                 something amazing.
@@ -363,7 +363,7 @@ const CyberContactSection = () => {
                                         fontWeight: 600,
                                     }}
                                 >
-                                    /* STATUS: OPEN TO OPPORTUNITIES */
+                                    {'/* STATUS: OPEN TO OPPORTUNITIES */'}
                                 </Typography>
                                 <Typography
                                     sx={{

@@ -187,7 +187,7 @@ const Footer = () => {
                                 mb: 2,
                             }}
                         >
-                            // NAVIGATION
+                            {'// NAVIGATION'}
                         </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
                             {FOOTER_NAV.map((nav) => (
@@ -244,7 +244,7 @@ const Footer = () => {
                                     mb: 2,
                                 }}
                             >
-                                // SOCIAL PROFILE
+                                {'// SOCIAL PROFILE'}
                             </Typography>
 
                             {/* Social Buttons Grid */}

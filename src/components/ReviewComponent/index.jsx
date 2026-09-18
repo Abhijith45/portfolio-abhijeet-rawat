@@ -52,25 +52,24 @@ const ReviewComponent = ({
 
     // Countdown timer for auto-navigation in countdown mode
     useEffect(() => {
-        let interval = null;
-        if (open && initialMode !== 'review' && !showReviewModal && !isTimerPaused && countdown > 0) {
-            interval = setInterval(() => {
-                setCountdown((prev) => {
-                    if (prev <= 1) {
-                        clearInterval(interval);
-                        if (onClose) onClose();
-                        if (autoRedirect && redirectTo) {
-                            navigate(redirectTo);
-                        }
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
+        if (!open || initialMode === 'review' || showReviewModal || isTimerPaused) {
+            return;
         }
-        return () => {
-            if (interval) clearInterval(interval);
-        };
+
+        if (countdown <= 0) {
+            // react-doctor-disable-next-line react-doctor/no-prop-callback-in-effect
+            if (onClose) onClose();
+            if (autoRedirect && redirectTo) {
+                navigate(redirectTo);
+            }
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setCountdown((prev) => prev - 1);
+        }, 1000);
+
+        return () => clearTimeout(timer);
     }, [open, initialMode, showReviewModal, isTimerPaused, countdown, navigate, redirectTo, onClose, autoRedirect]);
 
     const handleOpenReview = useCallback(() => {
@@ -327,7 +326,7 @@ const ReviewComponent = ({
                                 mb: 0.5,
                             }}
                         >
-                            // VISITOR FEEDBACK & REVIEW
+                            {'// VISITOR FEEDBACK & REVIEW'}
                         </Typography>
                         <Typography
                             sx={{

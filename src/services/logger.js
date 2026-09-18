@@ -7,7 +7,6 @@
  */
 
 const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzOPRYcdpy2x-iR_tbtYb0dLMbO_MplLFSEiW6RMqs-boK0pBjEPKu-vKBu9U6twSHB/exec';
-const DEFAULT_WEBHOOK_SECRET = '9b752bdc626388ade8a4526825e0132e5f0558907756623f3793ca5ba06bca00';
 
 // In-memory cache to deduplicate errors within a cooldown window (60s)
 const recentlyLoggedErrors = new Map();
@@ -62,8 +61,10 @@ export const logErrorToWebhook = ({
         DEFAULT_WEBHOOK_URL;
 
     const token =
-        (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_WEBHOOK_SECRET || import.meta.env?.WEBHOOK_SECRET)) ||
-        DEFAULT_WEBHOOK_SECRET;
+        (typeof import.meta !== 'undefined' &&
+            // react-doctor-disable-next-line react-doctor/public-env-secret-name
+            (import.meta.env?.VITE_WEBHOOK_SECRET || import.meta.env?.VITE_WEBHOOK_TOKEN || import.meta.env?.WEBHOOK_SECRET)) ||
+        '';
 
     if (!webhookUrl) return;
 

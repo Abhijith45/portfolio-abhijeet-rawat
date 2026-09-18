@@ -158,7 +158,7 @@ const ProjectModal = ({ open, onClose, project }) => {
             </Box>
 
             {/* Modal Body: 2-Column Split Layout */}
-            <DialogContent sx={{ p: { xs: 2.5, sm: 3.5, md: 4 } }}>
+            <DialogContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                 <Box
                     sx={{
                         display: 'grid',
@@ -289,7 +289,7 @@ const ProjectModal = ({ open, onClose, project }) => {
                                     letterSpacing: '0.08em',
                                 }}
                             >
-                                // STATUS: VERIFIED_DEPLOYMENT
+                                {'// STATUS: VERIFIED_DEPLOYMENT'}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                                 <Box
@@ -428,13 +428,13 @@ const ProjectModal = ({ open, onClose, project }) => {
                                     fontWeight: 600,
                                 }}
                             >
-                                // BUILT WITH:
+                                {'// BUILT WITH:'}
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {techStack.map((tech, idx) => (
+                                {techStack.map((tech) => (
                                     <Chip
-                                        key={idx}
-                                        label={tech}
+                                        key={typeof tech === 'string' ? tech : (tech._id || tech.name)}
+                                        label={typeof tech === 'string' ? tech : tech.name}
                                         size="small"
                                         sx={{
                                             backgroundColor: 'rgba(0, 255, 65, 0.05)',
@@ -474,7 +474,7 @@ const ProjectModal = ({ open, onClose, project }) => {
                                     fontWeight: 600,
                                 }}
                             >
-                                // ENGINEERING_OVERVIEW:
+                                {'// ENGINEERING_OVERVIEW:'}
                             </Typography>
                             <Box
                                 sx={{

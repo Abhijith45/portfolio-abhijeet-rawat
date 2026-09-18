@@ -53,7 +53,7 @@ const ProjectsSection = () => {
     }
 
     return (
-        <Box id="projects" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+        <Box id="projects" sx={{ py: { xs: 5, sm: 7, md: 10 }, position: 'relative' }}>
             {/* Constrained container maxWidth to 1200px matching Navbar & other sections */}
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 <motion.div initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -67,7 +67,7 @@ const ProjectsSection = () => {
                             mb: 1.5,
                         }}
                     >
-                        // MY WORK //
+                        {'// MY WORK //'}
                     </Typography>
                     <Typography
                         variant="h2"
@@ -92,8 +92,8 @@ const ProjectsSection = () => {
                     viewport={{ once: true, margin: '-50px' }}
                 >
                     <Grid container spacing={{ xs: 2.5, sm: 3, md: 4 }}>
-                        {projects.map((project, index) => (
-                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index}>
+                        {projects.map((project) => (
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || project.title || project.name}>
                                 <motion.div variants={cardVariants} style={{ height: '100%' }}>
                                     <ProjectCard project={project} />
                                 </motion.div>

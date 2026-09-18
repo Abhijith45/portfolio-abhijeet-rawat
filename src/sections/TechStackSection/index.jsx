@@ -93,7 +93,7 @@ const TechStackSection = () => {
     const currentItems = techByCategory[selectedCategory] || [];
 
     return (
-        <Box id="skills" sx={{ py: { xs: 8, md: 12 }, position: 'relative' }}>
+        <Box id="skills" sx={{ py: { xs: 5, sm: 7, md: 10 }, position: 'relative' }}>
             <span id="tech-stack" style={{ position: 'absolute', top: 0 }} />
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
                 {/* Header */}
@@ -108,7 +108,7 @@ const TechStackSection = () => {
                             mb: 1.5,
                         }}
                     >
-                        /* TECH STACK */
+                        {'/* TECH STACK */'}
                     </Typography>
                     <Typography
                         variant="h2"
@@ -118,7 +118,7 @@ const TechStackSection = () => {
                             fontWeight: 800,
                             color: '#fff',
                             letterSpacing: '-0.02em',
-                            mb: { xs: 2, md: 3 },
+                            mb: { xs: 3, md: 4 },
                         }}
                     >
                         Tools of Trade
@@ -129,10 +129,16 @@ const TechStackSection = () => {
                 <Box
                     sx={{
                         display: 'flex',
-                        flexWrap: 'wrap',
-                        justifyContent: 'center',
+                        flexWrap: { xs: 'nowrap', sm: 'wrap' },
+                        overflowX: { xs: 'auto', sm: 'visible' },
+                        justifyContent: { xs: 'flex-start', sm: 'center' },
                         gap: { xs: 1, sm: 1.5 },
-                        mb: { xs: 2, md: 3 },
+                        mb: { xs: 2.5, md: 3 },
+                        px: { xs: 1, sm: 0 },
+                        py: { xs: 0.5, sm: 0 },
+                        scrollbarWidth: 'none',
+                        '&::-webkit-scrollbar': { display: 'none' },
+                        WebkitOverflowScrolling: 'touch',
                     }}
                 >
                     {categories.map((cat) => {
@@ -150,6 +156,8 @@ const TechStackSection = () => {
                                     fontWeight: 600,
                                     letterSpacing: '0.03em',
                                     textTransform: 'none',
+                                    whiteSpace: 'nowrap',
+                                    flexShrink: 0,
                                     color: isSelected ? '#fff' : 'rgba(255,255,255,0.7)',
                                     background: isSelected ? 'rgba(0,255,65,0.08)' : '#0a0a0a',
                                     border: isSelected ? '1px solid #00FF41' : '1px solid rgba(255,255,255,0.18)',
@@ -169,22 +177,18 @@ const TechStackSection = () => {
                 </Box>
 
                 {/* Tech Icons Wall Showcase matching screenshot */}
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                        <CircularProgress sx={{ color: '#00FF41' }} />
-                    </Box>
-                ) : (
-                    <Box
-                        sx={{
-                            // background: '#0a0a0a',
-                            // border: '1px solid rgba(255,255,255,0.08)',
-                            // borderRadius: '12px',
-                            p: { xs: 2, sm: 2.5, md: 3 },
-                            // boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
-                            overflow: 'hidden',
-                        }}
-                    >
-
+                <Box
+                    sx={{
+                        p: { xs: 2, sm: 2.5, md: 3 },
+                        overflow: 'hidden',
+                    }}
+                >
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <CircularProgress sx={{ color: '#00FF41' }} />
+                        </Box>
+                    ) : (
+                        /* react-doctor-disable-next-line motion-animate-presence-must-outlive-child */
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={selectedCategory}
@@ -268,8 +272,8 @@ const TechStackSection = () => {
                                 </Grid>
                             </motion.div>
                         </AnimatePresence>
-                    </Box>
-                )}
+                    )}
+                </Box>
             </Container>
         </Box>
     );

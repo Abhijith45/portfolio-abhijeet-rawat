@@ -48,7 +48,7 @@ export const ProfileProvider = ({ children }) => {
     // Subscribe to cache invalidation / purge events for profile
     useCacheSubscription('profile', fetchProfile);
 
-    const updateProfile = async (updateData) => {
+    const updateProfile = useCallback(async (updateData) => {
         const res = await userApi.updateProfile(updateData);
         if (res.data?.success && res.data?.data) {
             setProfile((prev) => ({
@@ -57,22 +57,23 @@ export const ProfileProvider = ({ children }) => {
             }));
         }
         return res.data;
-    };
+    }, []);
+
+    const contextValue = React.useMemo(
+        () => ({
+            profile,
+            loading,
+            refreshProfile: fetchProfile,
+            updateProfile,
+        }),
+        [profile, loading, fetchProfile, updateProfile]
+    );
 
     return (
-        <ProfileContext.Provider
-            value={{
-                profile,
-                loading,
-                refreshProfile: fetchProfile,
-                updateProfile,
-            }}
-        >
+        <ProfileContext.Provider value={contextValue}>
             {children}
         </ProfileContext.Provider>
     );
 };
 
 export const useProfile = () => useContext(ProfileContext);
-
-export default ProfileContext;

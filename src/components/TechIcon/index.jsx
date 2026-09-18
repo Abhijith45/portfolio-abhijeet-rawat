@@ -53,7 +53,7 @@ const iconSlugMap = {
     'figma': 'figma',
 };
 
-export const getIconUrl = (name = '', customIcon = '') => {
+const getIconUrl = (name = '', customIcon = '') => {
     // 1. If an explicit image URL is provided (e.g. from Cloudinary or external link)
     if (customIcon && (customIcon.startsWith('http://') || customIcon.startsWith('https://') || customIcon.startsWith('/'))) {
         return customIcon;

@@ -37,7 +37,7 @@ const About = () => {
                                 opacity: 0.8,
                             }}
                         >
-                            // BIOGRAPHY
+                            {'// BIOGRAPHY'}
                         </Typography>
                     </motion.div>
 
@@ -76,7 +76,7 @@ const About = () => {
                             "I'm still early in my career, and I don't pretend to know everything. I care about learning quickly, taking ownership and getting better with every system I build."
                         ].map((para, index) => (
                             <Typography
-                                key={index}
+                                key={para.slice(0, 32)}
                                 sx={{
                                     color: 'rgba(255,255,255,0.86)',
                                     fontSize: index === 0 ? { xs: '1rem', md: '1.5rem' } : { xs: '0.95rem', md: '1rem' },

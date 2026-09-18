@@ -33,7 +33,7 @@ const cardVariants = {
 
 const ServicesSection = () => {
     return (
-        <Box sx={{ py: { xs: 7, md: 10 } }}>
+        <Box sx={{ py: { xs: 5, sm: 6, md: 9 } }}>
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
                 <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
                     <Typography
@@ -46,7 +46,7 @@ const ServicesSection = () => {
                             opacity: 0.8,
                         }}
                     >
-            /* WHAT I CAN HELP YOU WITH */
+                        {'/* WHAT I CAN HELP YOU WITH */'}
                     </Typography>
                     <Typography
                         variant="h2"
@@ -68,8 +68,8 @@ const ServicesSection = () => {
                     viewport={{ once: true, margin: '-50px' }}
                 >
                     <Grid container spacing={{ xs: 2, md: 3 }}>
-                        {services.map((service, index) => (
-                            <Grid size={{xs:12,sm:6,md:4}} key={index}>
+                        {services.map((service) => (
+                            <Grid size={{xs:12,sm:6,md:4}} key={service.title || service.id}>
                                 <motion.div variants={cardVariants}>
                                     <ServiceCard service={service} />
                                 </motion.div>

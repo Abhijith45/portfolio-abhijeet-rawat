@@ -60,7 +60,7 @@ const ConfirmDeleteDialog = ({
                         {title}
                     </Typography>
                     <Typography sx={{ color: '#ff4d4f', fontFamily: 'Fira Code, monospace', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
-                        // PERMANENT_REMOVAL_WARNING
+                        {'// PERMANENT_REMOVAL_WARNING'}
                     </Typography>
                 </Box>
             </DialogTitle>

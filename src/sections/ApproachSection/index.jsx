@@ -60,14 +60,14 @@ const ApproachSection = () => {
             component="section"
             id="approach"
             sx={{
-                py: { xs: 8, sm: 10, md: 12 },
+                py: { xs: 5, sm: 7, md: 10 },
                 position: 'relative',
                 background: 'transparent',
             }}
         >
             <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 {/* Section Header */}
-                <Box sx={{ mb: { xs: 5, md: 7 }, textAlign: 'center' }}>
+                <Box sx={{ mb: { xs: 3.5, md: 6 }, textAlign: 'center' }}>
                     <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -84,7 +84,7 @@ const ApproachSection = () => {
                                 fontWeight: 500,
                             }}
                         >
-                            // HOW I APPROACH PROBLEMS //
+                            {'// HOW I APPROACH PROBLEMS //'}
                         </Typography>
                     </motion.div>
 
@@ -279,24 +279,25 @@ const ApproachSection = () => {
                                         {isExpanded && (
                                             <motion.div
                                                 key="content"
-                                                initial={{ height: 0, opacity: 0 }}
+                                                layout
+                                                initial={{ opacity: 0, scaleY: 0.95 }}
                                                 animate={{
-                                                    height: 'auto',
                                                     opacity: 1,
+                                                    scaleY: 1,
                                                     transition: {
-                                                        height: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] },
-                                                        opacity: { duration: 0.25, delay: 0.1 },
+                                                        scaleY: { duration: 0.25, ease: [0.04, 0.62, 0.23, 0.98] },
+                                                        opacity: { duration: 0.2, delay: 0.05 },
                                                     },
                                                 }}
                                                 exit={{
-                                                    height: 0,
                                                     opacity: 0,
+                                                    scaleY: 0.95,
                                                     transition: {
-                                                        height: { duration: 0.25, ease: 'easeInOut' },
+                                                        scaleY: { duration: 0.2, ease: 'easeInOut' },
                                                         opacity: { duration: 0.15 },
                                                     },
                                                 }}
-                                                style={{ overflow: 'hidden' }}
+                                                style={{ overflow: 'hidden', transformOrigin: 'top' }}
                                             >
                                                 <Box
                                                     sx={{

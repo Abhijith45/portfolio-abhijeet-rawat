@@ -110,7 +110,7 @@ const AdminLogin = () => {
                                     mt: 0.5,
                                 }}
                             >
-                                // ENTER AUTHORIZATION CREDENTIALS
+                                {'// ENTER AUTHORIZATION CREDENTIALS'}
                             </Typography>
                         </Box>
 

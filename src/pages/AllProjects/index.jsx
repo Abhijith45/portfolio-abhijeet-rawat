@@ -167,7 +167,7 @@ const AllProjects = () => {
                             mb: 0.75,
                         }}
                     >
-                        // MY PROJECTS ({projects?.length})
+                        {`// MY PROJECTS (${projects?.length || 0})`}
                     </Typography>
                     <Typography
                         variant="h1"
@@ -200,8 +200,8 @@ const AllProjects = () => {
                             key={visibleCount}
                         >
                             <Grid container spacing={{ xs: 2.5, sm: 3, md: 3 }}>
-                                {visibleProjects.map((project, index) => (
-                                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || index} data-testid="project-card-item">
+                                {visibleProjects.map((project) => (
+                                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project._id || project.title || project.name} data-testid="project-card-item">
                                         <MotionDiv variants={cardVariants} style={{ height: '100%' }}>
                                             <ProjectCard project={project} />
                                         </MotionDiv>
@@ -290,7 +290,7 @@ const AllProjects = () => {
                                         letterSpacing: '0.08em',
                                     }}
                                 >
-                                    // ALL ARCHIVES DEPLOYED [TOTAL: {projects.length} PROJECTS]
+                                    {`// ALL ARCHIVES DEPLOYED [TOTAL: ${projects.length} PROJECTS]`}
                                 </Typography>
                             </Box>
                         )}
