@@ -3,6 +3,7 @@ import { Box, Container, Typography, Grid, CircularProgress, Button } from '@mui
 import { motion, AnimatePresence } from 'framer-motion';
 import { technologiesApi } from '../../services/api';
 import TechIcon from '../../components/TechIcon';
+import useCacheSubscription from '../../hooks/useCacheSubscription';
 
 const categories = [
     'Frontend & UI',
@@ -14,30 +15,34 @@ const categories = [
 
 const fallbackTechByCategory = {
     'Frontend & UI': [
+        { name: 'React', icon: 'react' },
+        { name: 'Next.js', icon: 'nextjs' },
+        { name: 'JavaScript', icon: 'javascript' },
         { name: 'HTML5', icon: 'html5' },
         { name: 'CSS3', icon: 'css3' },
-        { name: 'JavaScript', icon: 'javascript' },
-        { name: 'TypeScript', icon: 'typescript' },
-        { name: 'React', icon: 'react' },
-        { name: 'Next.js', icon: 'nextdotjs' },
-        { name: 'Tailwind CSS', icon: 'tailwindcss' },
         { name: 'Material UI', icon: 'mui' },
+        { name: 'Tailwind CSS', icon: 'tailwind' },
         { name: 'Framer Motion', icon: 'framer' },
+        { name: 'Redux', icon: 'redux' },
     ],
     'Backend & Runtime': [
-        { name: 'Node.js', icon: 'nodedotjs' },
+        { name: 'Node.js', icon: 'nodejs' },
         { name: 'Express.js', icon: 'express' },
         { name: 'REST APIs', icon: 'fastapi' },
+        { name: 'JWT Auth', icon: 'jwt' },
     ],
     'Database & Cache': [
         { name: 'MongoDB', icon: 'mongodb' },
+        { name: 'Mongoose', icon: 'mongoose' },
         { name: 'PostgreSQL', icon: 'postgresql' },
-        { name: 'Redis', icon: 'redis' },
+        { name: 'MySQL', icon: 'mysql' },
+        { name: 'Firebase', icon: 'firebase' },
     ],
     'DevOps, Cloud & Storage': [
         { name: 'Docker', icon: 'docker' },
-        { name: 'AWS', icon: 'amazonwebservices' },
         { name: 'Cloudinary', icon: 'cloudinary' },
+        { name: 'Render', icon: 'render' },
+        { name: 'Netlify', icon: 'netlify' },
         { name: 'Vercel', icon: 'vercel' },
     ],
     'Version Control & Dev Tools': [
@@ -54,32 +59,36 @@ const TechStackSection = () => {
     const [techByCategory, setTechByCategory] = useState(fallbackTechByCategory);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchTech = async () => {
-            try {
-                const res = await technologiesApi.getAll();
-                if (res.data?.success && res.data?.data?.length > 0) {
-                    const grouped = {};
-                    categories.forEach((cat) => (grouped[cat] = []));
+    const fetchTech = async () => {
+        try {
+            const res = await technologiesApi.getAll();
+            if (res.data?.success && res.data?.data?.length > 0) {
+                const grouped = {};
+                categories.forEach((cat) => (grouped[cat] = []));
 
-                    res.data.data.forEach((item) => {
-                        const cat = item.category || 'Frontend & UI';
-                        if (!grouped[cat]) grouped[cat] = [];
-                        grouped[cat].push({
-                            name: item.name,
-                            icon: item.icon || item.name.toLowerCase(),
-                        });
+                res.data.data.forEach((item) => {
+                    const cat = item.category || 'Frontend & UI';
+                    if (!grouped[cat]) grouped[cat] = [];
+                    grouped[cat].push({
+                        name: item.name,
+                        icon: item.icon || item.name.toLowerCase(),
                     });
-                    setTechByCategory(grouped);
-                }
-            } catch (err) {
-                console.warn('Using fallback tech items:', err.message);
-            } finally {
-                setLoading(false);
+                });
+                setTechByCategory(grouped);
             }
-        };
+        } catch (err) {
+            console.warn('Using fallback tech items:', err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchTech();
     }, []);
+
+    // Subscribe to cache invalidation / purge events
+    useCacheSubscription('technologies', fetchTech);
 
     const currentItems = techByCategory[selectedCategory] || [];
 

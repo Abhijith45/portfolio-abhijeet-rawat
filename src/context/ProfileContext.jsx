@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { userApi } from '../services/api';
+import useCacheSubscription from '../hooks/useCacheSubscription';
 
 const defaultProfile = {
     name: 'Abhijeet Rawat',
@@ -43,6 +44,9 @@ export const ProfileProvider = ({ children }) => {
     useEffect(() => {
         fetchProfile();
     }, [fetchProfile]);
+
+    // Subscribe to cache invalidation / purge events for profile
+    useCacheSubscription('profile', fetchProfile);
 
     const updateProfile = async (updateData) => {
         const res = await userApi.updateProfile(updateData);

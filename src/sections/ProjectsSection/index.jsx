@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ProjectCard from '../../components/ProjectCard';
 import { projectsApi } from '../../services/api';
+import useCacheSubscription from '../../hooks/useCacheSubscription';
 
 const containerVariants = {
     hidden: {},
@@ -22,36 +23,29 @@ const ProjectsSection = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        let isMounted = true;
-        const fetchProjects = async () => {
-            try {
-                const res = await projectsApi.getFeatured();
-                if (isMounted) {
-                    if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
-                        setProjects(res.data.data);
-                        setHasMore(Boolean(res.data.hasMore));
-                    } else {
-                        setProjects([]);
-                    }
-                }
-            } catch (err) {
-                console.warn('Failed to fetch featured projects:', err.message);
-                if (isMounted) {
-                    setProjects([]);
-                }
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
+    const fetchProjects = async () => {
+        try {
+            const res = await projectsApi.getFeatured();
+            if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
+                setProjects(res.data.data);
+                setHasMore(Boolean(res.data.hasMore));
+            } else {
+                setProjects([]);
             }
-        };
-        fetchProjects();
+        } catch (err) {
+            console.warn('Failed to fetch featured projects:', err.message);
+            setProjects([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        return () => {
-            isMounted = false;
-        };
+    useEffect(() => {
+        fetchProjects();
     }, []);
+
+    // Subscribe to cache invalidation / purge events
+    useCacheSubscription('projects', fetchProjects);
 
     // Do not render this section if loading or if there are 0 featured projects in DB
     if (loading || !projects || projects.length === 0) {

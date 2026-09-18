@@ -15,7 +15,7 @@ class ServerCacheManager {
     }
 
     incrementCacheVersion() {
-        this.cacheVersion = Date.now();
+        this.cacheVersion = Math.max(Date.now(), (this.cacheVersion || 0) + 1);
         return this.cacheVersion;
     }
 

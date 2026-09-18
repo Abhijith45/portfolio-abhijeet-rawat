@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import { experiencesApi } from '../../services/api';
+import useCacheSubscription from '../../hooks/useCacheSubscription';
 
 // Fallback initial experiences if offline or during initial fetch
 const fallbackExperiences = [
@@ -45,24 +46,23 @@ const ExperienceTimeline = () => {
     const cardRefs = useRef([]);
 
     // Fetch dynamic experiences from backend database
-    useEffect(() => {
-        let isMounted = true;
-        const fetchExperiences = async () => {
-            try {
-                const res = await experiencesApi.getAll();
-                if (isMounted && res.data && res.data.data && res.data.data.length > 0) {
-                    setExperiences(res.data.data);
-                }
-            } catch (err) {
-                console.warn('Using fallback experiences:', err.message);
+    const fetchExperiences = async () => {
+        try {
+            const res = await experiencesApi.getAll();
+            if (res.data && res.data.data && res.data.data.length > 0) {
+                setExperiences(res.data.data);
             }
-        };
+        } catch (err) {
+            console.warn('Using fallback experiences:', err.message);
+        }
+    };
 
+    useEffect(() => {
         fetchExperiences();
-        return () => {
-            isMounted = false;
-        };
     }, []);
+
+    // Subscribe to cache invalidation / purge events
+    useCacheSubscription('experiences', fetchExperiences);
 
     // Viewport Center Scroll Tracking: highlight closest card in center of viewport
     useEffect(() => {

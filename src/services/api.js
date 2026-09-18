@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { apiCache } from './apiCache';
+import { apiCache, CACHE_STATES, getResourceFromUrl, isPrivateEndpoint } from './apiCache';
 import { clientRateLimiter } from './rateLimiter';
 import { logErrorToWebhook } from './logger';
 
@@ -17,6 +17,12 @@ const api = axios.create({
 // Client-Side Rate Limiter & Request Interceptor
 api.interceptors.request.use(
     (config) => {
+        // Tag request with generation at time of dispatch to prevent in-flight race conditions
+        config.metadata = {
+            startGeneration: apiCache.getGeneration(),
+            startTime: Date.now(),
+        };
+
         // Attach Bearer token from sessionStorage if available (supports cross-domain auth)
         if (typeof window !== 'undefined' && window.sessionStorage) {
             const token = window.sessionStorage.getItem('admin_token');
@@ -34,12 +40,11 @@ api.interceptors.request.use(
         const rateCheck = clientRateLimiter.checkLimit(bucketKey, maxLimit);
 
         if (!rateCheck.allowed) {
-            // If it's a GET request and we have cached data, we can resolve from cache
+            // If it's a GET request and we have cached data, resolve from cache
             if (method === 'GET') {
                 const cacheKey = apiCache.generateKey(url, config.params);
                 const cached = apiCache.getRaw(cacheKey);
                 if (cached?.data) {
-                    // Attach cached response to config so adapter or error interceptor returns it
                     config.adapter = () =>
                         Promise.resolve({
                             data: cached.data,
@@ -47,6 +52,7 @@ api.interceptors.request.use(
                             statusText: 'OK (Client Rate Limited - Served from Cache)',
                             headers: { 'x-cache': 'HIT_RATE_LIMITED' },
                             config,
+                            fromCache: true,
                         });
                     return config;
                 }
@@ -60,11 +66,13 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Caching, Invalidation & Offline/429 Fallback
+// Response Interceptor: Caching, Invalidation & In-Flight Race Protection
 api.interceptors.response.use(
     (response) => {
         const method = (response.config?.method || 'get').toUpperCase();
         const url = response.config?.url || '';
+        const startGen = response.config?.metadata?.startGeneration;
+        const currentGen = apiCache.getGeneration();
 
         // Synchronize with server cache version if header is provided
         const serverCacheVer = response.headers?.['x-cache-version'];
@@ -72,35 +80,34 @@ api.interceptors.response.use(
             apiCache.checkVersion(serverCacheVer);
         }
 
-        // 1. Cache successful GET requests
+        // 1. Cache successful GET requests ONLY if generation did not change while in-flight
         if (method === 'GET' && response.status >= 200 && response.status < 300) {
-            const cacheKey = apiCache.generateKey(url, response.config.params);
-            apiCache.set(cacheKey, response.data);
+            if (startGen === undefined || startGen === currentGen) {
+                const cacheKey = apiCache.generateKey(url, response.config.params);
+                const resource = getResourceFromUrl(url);
+                apiCache.set(cacheKey, response.data, resource);
+            }
         }
 
         // 2. Invalidate cache on mutations (POST, PUT, DELETE)
         if (['POST', 'PUT', 'DELETE'].includes(method)) {
             if (url.includes('project') || url.includes('/api/projects')) {
-                apiCache.clear('project');
+                apiCache.clear('projects');
             }
             if (url.includes('technolog') || url.includes('/api/technologies')) {
-                apiCache.clear('technolog');
+                apiCache.clear('technologies');
             }
             if (url.includes('review') || url.includes('/api/reviews')) {
-                apiCache.clear('review');
+                apiCache.clear('reviews');
             }
             if (url.includes('quer') || url.includes('/api/queries')) {
-                apiCache.clear('quer');
+                apiCache.clear('queries');
             }
-            if (url.includes('resume') || url.includes('/api/resume')) {
-                apiCache.clear('resume');
-                apiCache.clear('user');
+            if (url.includes('resume') || url.includes('/api/resume') || url.includes('user') || url.includes('/api/user')) {
+                apiCache.clear('profile');
             }
             if (url.includes('experience') || url.includes('/api/experiences')) {
-                apiCache.clear('experience');
-            }
-            if (url.includes('user') || url.includes('/api/user')) {
-                apiCache.clear('user');
+                apiCache.clear('experiences');
             }
             if (url.includes('purge-cache')) {
                 apiCache.purgeAll();
@@ -136,6 +143,7 @@ api.interceptors.response.use(
         // Clear expired session token if unauthorized
         if (statusCode === 401 && typeof window !== 'undefined' && window.sessionStorage) {
             window.sessionStorage.removeItem('admin_token');
+            apiCache.clearMemory();
         }
 
         // Log critical network / server errors to webhook in fire-and-forget mode
@@ -158,11 +166,80 @@ api.interceptors.response.use(
 );
 
 /**
- * Deduplicated GET helper to ensure concurrent identical requests share a single network call.
+ * Cache-First + Stale-While-Revalidate GET Handler with In-Flight Deduplication.
+ *
+ * Flow for public resources:
+ * - FRESH -> Return cached payload immediately. 0 network requests.
+ * - STALE -> Return cached payload immediately + trigger background revalidation.
+ * - EXPIRED/EMPTY/INVALID -> Trigger deduplicated network request with fallback on failure.
  */
-const deduplicatedGet = (url, params) => {
+const deduplicatedGet = async (url, params) => {
+    const resource = getResourceFromUrl(url);
+    const isPrivate = isPrivateEndpoint(url);
     const cacheKey = apiCache.generateKey(url, params);
-    return apiCache.deduplicate(cacheKey, () => api.get(url, { params }));
+
+    // If resource is public and cacheable, use Cache-First / SWR
+    if (resource && !isPrivate) {
+        const entry = apiCache.getEntry(cacheKey);
+
+        // 1. FRESH: Return immediately without network request
+        if (entry.status === CACHE_STATES.FRESH) {
+            return {
+                data: entry.data,
+                status: 200,
+                statusText: 'OK (Cache-First FRESH)',
+                headers: { 'x-cache': 'HIT_FRESH' },
+                config: { url, params },
+                fromCache: true,
+            };
+        }
+
+        // 2. STALE: Return stale data immediately + trigger background revalidation
+        if (entry.status === CACHE_STATES.STALE) {
+            // Trigger exactly one background revalidation request
+            apiCache.deduplicate(cacheKey + ':revalidate', async () => {
+                try {
+                    const res = await api.get(url, { params });
+                    // On successful revalidation, update cache and notify active components
+                    apiCache.set(cacheKey, res.data, resource);
+                    apiCache.notifyInvalidation(resource, { type: 'revalidate' });
+                    return res;
+                } catch (err) {
+                    console.warn(`Background revalidation failed for ${url}:`, err.message);
+                }
+            });
+
+            return {
+                data: entry.data,
+                status: 200,
+                statusText: 'OK (Cache-First STALE - Revalidating)',
+                headers: { 'x-cache': 'HIT_STALE' },
+                config: { url, params },
+                fromCache: true,
+            };
+        }
+    }
+
+    // 3. EXPIRED, EMPTY, INVALID, or Private: Execute deduplicated network request
+    return apiCache.deduplicate(cacheKey, async () => {
+        try {
+            return await api.get(url, { params });
+        } catch (err) {
+            // If network request failed, check for any emergency fallback data
+            const fallback = apiCache.getRaw(cacheKey);
+            if (fallback?.data) {
+                return {
+                    data: fallback.data,
+                    status: 200,
+                    statusText: 'OK (Emergency Cache Fallback)',
+                    headers: { 'x-cache': 'HIT_FALLBACK' },
+                    config: { url, params },
+                    fromCache: true,
+                };
+            }
+            throw err;
+        }
+    });
 };
 
 // Admin Management & System APIs
@@ -181,7 +258,16 @@ export const userApi = {
 export const authApi = {
     login: (credentials) => api.post('/api/auth/login', credentials),
     getMe: () => deduplicatedGet('/api/auth/me'),
-    logout: () => api.post('/api/auth/logout'),
+    logout: async () => {
+        try {
+            await api.post('/api/auth/logout');
+        } finally {
+            apiCache.clearMemory();
+            if (typeof window !== 'undefined' && window.sessionStorage) {
+                window.sessionStorage.removeItem('admin_token');
+            }
+        }
+    },
 };
 
 // Projects API
@@ -241,6 +327,6 @@ export const experiencesApi = {
     delete: (id) => api.delete(`/api/experiences/${id}`),
 };
 
-export { apiCache } from './apiCache';
+export { apiCache, CACHE_POLICY, CACHE_STATES } from './apiCache';
 export { clientRateLimiter } from './rateLimiter';
 export default api;

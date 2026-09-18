@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { reviewsApi } from '../services/api';
+import useCacheSubscription from './useCacheSubscription';
 
 export const useReviews = () => {
     const [reviews, setReviews] = useState([]);
@@ -25,6 +26,9 @@ export const useReviews = () => {
     useEffect(() => {
         fetchReviews();
     }, []);
+
+    // Subscribe to cache invalidation / purge events for reviews
+    useCacheSubscription('reviews', fetchReviews);
 
     const submitReview = async (data) => {
         const response = await reviewsApi.create(data);
