@@ -2,7 +2,8 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
+import { HashLoader } from 'react-spinners';
 import theme from './theme';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
@@ -41,7 +42,7 @@ const LoadingFallback = () => (
             background: '#050505',
         }}
     >
-        <CircularProgress sx={{ color: '#00FF41' }} />
+        <HashLoader color="#00FF41" size={50} />
     </Box>
 );
 

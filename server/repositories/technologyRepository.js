@@ -22,6 +22,16 @@ class TechnologyRepository {
         }).lean();
     }
 
+    async findOne(query = {}, options = {}) {
+        let cursor = Technology.findOne(query);
+        if (options.sort) cursor = cursor.sort(options.sort);
+        return cursor.lean();
+    }
+
+    async updateMany(query, update) {
+        return Technology.updateMany(query, update);
+    }
+
     async deleteById(id) {
         return Technology.findByIdAndDelete(id).lean();
     }

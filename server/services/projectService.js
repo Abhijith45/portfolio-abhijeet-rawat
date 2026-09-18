@@ -7,6 +7,7 @@ class ProjectService {
         const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 6, 1), 50);
         const query = {
             $or: [{ isFeatured: true }, { isFeatured: { $exists: false } }],
+            isVisible: { $ne: false },
         };
 
         const cacheKey = `projects:featured:limit=${safeLimit}`;
@@ -16,9 +17,9 @@ class ProjectService {
         }
 
         const [totalProjects, featuredCount, featuredProjects] = await Promise.all([
-            projectRepository.count(),
+            projectRepository.count({ isVisible: { $ne: false } }),
             projectRepository.count(query),
-            projectRepository.find(query, { sort: { createdAt: -1 }, limit: safeLimit }),
+            projectRepository.find(query, { sort: { order: 1, createdAt: -1 }, limit: safeLimit }),
         ]);
 
         const hasMore = totalProjects > safeLimit || featuredCount > safeLimit;
@@ -38,9 +39,18 @@ class ProjectService {
     async getAll(queryParams = {}) {
         const query = {};
         if (queryParams.isFeatured !== undefined) {
-            query.isFeatured = queryParams.isFeatured === 'true';
+            query.isFeatured = queryParams.isFeatured === 'true' || queryParams.isFeatured === true;
         } else if (queryParams.featured !== undefined) {
-            query.isFeatured = queryParams.featured === 'true';
+            query.isFeatured = queryParams.featured === 'true' || queryParams.featured === true;
+        }
+
+        if (queryParams.isVisible !== undefined) {
+            query.isVisible = queryParams.isVisible === 'true' || queryParams.isVisible === true;
+        } else if (queryParams.visible !== undefined) {
+            query.isVisible = queryParams.visible === 'true' || queryParams.visible === true;
+        } else if (queryParams.all !== 'true' && queryParams.all !== true && queryParams.admin !== 'true' && queryParams.admin !== true) {
+            // Default for public portfolio queries: fetch only visible projects
+            query.isVisible = { $ne: false };
         }
 
         const cacheKey = `projects:${JSON.stringify(query)}`;
@@ -49,7 +59,7 @@ class ProjectService {
             return { data: cached, fromCache: true };
         }
 
-        const projects = await projectRepository.find(query, { sort: { createdAt: -1 } });
+        const projects = await projectRepository.find(query, { sort: { order: 1, createdAt: -1 } });
         const payload = { success: true, count: projects.length, data: projects };
 
         serverCache.set(cacheKey, payload);
@@ -71,6 +81,9 @@ class ProjectService {
             overview,
             isFeatured,
             featured,
+            isVisible,
+            visible,
+            order,
         } = body;
 
         const resolvedGithub = githubURL !== undefined ? githubURL : (github || '');
@@ -78,6 +91,17 @@ class ProjectService {
         const resolvedImage = imageURL !== undefined ? imageURL : (image || '');
         const resolvedOverview = engineeringOverview !== undefined ? engineeringOverview : (overview || '');
         const resolvedFeatured = isFeatured !== undefined ? isFeatured : (featured !== undefined ? featured : true);
+        const resolvedVisible = isVisible !== undefined ? isVisible : (visible !== undefined ? visible : true);
+
+        // Calculate and shift order rank
+        let targetOrder;
+        if (order !== undefined && order !== null && order !== '' && Number(order) > 0) {
+            targetOrder = Math.max(1, parseInt(order, 10) || 1);
+            await projectRepository.updateMany({ order: { $gte: targetOrder } }, { $inc: { order: 1 } });
+        } else {
+            const maxItem = await projectRepository.findOne({}, { sort: { order: -1 } });
+            targetOrder = (maxItem && typeof maxItem.order === 'number' && maxItem.order >= 1) ? maxItem.order + 1 : 1;
+        }
 
         const project = await projectRepository.create({
             title: (title || '').trim(),
@@ -90,6 +114,8 @@ class ProjectService {
             imageURL: (resolvedImage || '').trim(),
             engineeringOverview: (resolvedOverview || '').trim(),
             isFeatured: Boolean(resolvedFeatured),
+            isVisible: Boolean(resolvedVisible),
+            order: targetOrder,
         });
 
         serverCache.clearPattern('projects');
@@ -99,6 +125,11 @@ class ProjectService {
     }
 
     async updateProject(id, body) {
+        const existing = await projectRepository.findById(id);
+        if (!existing) {
+            throw new Error('Project not found');
+        }
+
         const {
             title,
             description,
@@ -113,6 +144,9 @@ class ProjectService {
             overview,
             isFeatured,
             featured,
+            isVisible,
+            visible,
+            order,
         } = body;
 
         const updateData = {};
@@ -139,10 +173,30 @@ class ProjectService {
         const resolvedFeatured = isFeatured !== undefined ? isFeatured : featured;
         if (resolvedFeatured !== undefined) updateData.isFeatured = Boolean(resolvedFeatured);
 
-        const project = await projectRepository.updateById(id, updateData);
-        if (!project) {
-            throw new Error('Project not found');
+        const resolvedVisible = isVisible !== undefined ? isVisible : visible;
+        if (resolvedVisible !== undefined) updateData.isVisible = Boolean(resolvedVisible);
+
+        // Auto-shift if order is updated
+        if (order !== undefined && order !== null && order !== '') {
+            const oldOrder = existing.order || 1;
+            const newOrder = Math.max(1, parseInt(order, 10) || 1);
+            if (newOrder !== oldOrder) {
+                if (newOrder < oldOrder) {
+                    await projectRepository.updateMany(
+                        { _id: { $ne: id }, order: { $gte: newOrder, $lt: oldOrder } },
+                        { $inc: { order: 1 } }
+                    );
+                } else {
+                    await projectRepository.updateMany(
+                        { _id: { $ne: id }, order: { $gt: oldOrder, $lte: newOrder } },
+                        { $inc: { order: -1 } }
+                    );
+                }
+                updateData.order = newOrder;
+            }
         }
+
+        const project = await projectRepository.updateById(id, updateData);
 
         serverCache.clearPattern('projects');
         const newVersion = serverCache.incrementCacheVersion();
@@ -151,9 +205,15 @@ class ProjectService {
     }
 
     async deleteProject(id) {
-        const project = await projectRepository.deleteById(id);
-        if (!project) {
+        const existing = await projectRepository.findById(id);
+        if (!existing) {
             throw new Error('Project not found');
+        }
+
+        await projectRepository.deleteById(id);
+
+        if (typeof existing.order === 'number' && existing.order >= 1) {
+            await projectRepository.updateMany({ order: { $gt: existing.order } }, { $inc: { order: -1 } });
         }
 
         serverCache.clearPattern('projects');

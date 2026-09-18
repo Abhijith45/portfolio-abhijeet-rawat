@@ -98,4 +98,23 @@ describe('Experiences Integration Tests', () => {
         expect(res.status).toBe(404);
         expect(res.body.success).toBe(false);
     });
+
+    it('should auto-shift orders when creating and updating experiences', async () => {
+        await Experience.deleteMany({});
+        const e1 = await Experience.create({ company: 'Org 1', role: 'Dev', period: '2021', order: 1 });
+        const e2 = await Experience.create({ company: 'Org 2', role: 'Dev', period: '2022', order: 2 });
+
+        // Insert at order 1 -> e1 and e2 shift to 2 and 3
+        const res = await request(app)
+            .post('/api/experiences')
+            .set('Authorization', `Bearer ${adminToken}`)
+            .send({ company: 'New Org', role: 'Lead', period: '2023', order: 1 });
+        expect(res.status).toBe(201);
+        expect(res.body.data.order).toBe(1);
+
+        const afterE1 = await Experience.findById(e1._id);
+        const afterE2 = await Experience.findById(e2._id);
+        expect(afterE1.order).toBe(2);
+        expect(afterE2.order).toBe(3);
+    });
 });

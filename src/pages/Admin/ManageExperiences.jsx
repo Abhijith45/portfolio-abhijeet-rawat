@@ -83,7 +83,8 @@ const ManageExperiences = () => {
 
     const handleOpenAdd = () => {
         setEditingId(null);
-        setFormData(initialForm);
+        const maxOrder = Math.max(0, ...experiences.map((e) => Number(e.order) || 0));
+        setFormData({ ...initialForm, order: maxOrder + 1 });
         setOpenDialog(true);
     };
 
@@ -100,7 +101,7 @@ const ManageExperiences = () => {
             skills: Array.isArray(item.skills)
                 ? item.skills.join(', ')
                 : item.skills || '',
-            order: item.order || 0,
+            order: item.order !== undefined ? item.order : 1,
         });
         setOpenDialog(true);
     };
@@ -161,6 +162,10 @@ const ManageExperiences = () => {
         }
     };
 
+    const conflictingExperience = experiences.find(
+        (e) => (!editingId || e._id !== editingId) && Number(e.order) === Number(formData.order)
+    );
+
     return (
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -174,6 +179,7 @@ const ManageExperiences = () => {
                 </Box>
                 <Button
                     variant="contained"
+                    disableRipple
                     startIcon={<AddIcon />}
                     onClick={handleOpenAdd}
                     sx={{ background: '#00FF41', color: '#000', fontWeight: 700, '&:hover': { background: '#39FF14' } }}
@@ -198,6 +204,7 @@ const ManageExperiences = () => {
                         <Table>
                             <TableHead sx={{ background: '#111' }}>
                                 <TableRow>
+                                    <TableCell sx={{ color: '#00FF41', fontFamily: 'Fira Code, monospace', fontWeight: 700, width: 60 }}>#</TableCell>
                                     <TableCell sx={{ color: '#00FF41', fontFamily: 'Fira Code, monospace', fontWeight: 700 }}>Company</TableCell>
                                     <TableCell sx={{ color: '#00FF41', fontFamily: 'Fira Code, monospace', fontWeight: 700 }}>Role</TableCell>
                                     <TableCell sx={{ color: '#00FF41', fontFamily: 'Fira Code, monospace', fontWeight: 700 }}>Period</TableCell>
@@ -208,13 +215,14 @@ const ManageExperiences = () => {
                             <TableBody>
                                 {experiences.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} align="center" sx={{ color: 'rgba(255,255,255,0.5)', py: 4 }}>
+                                        <TableCell colSpan={6} align="center" sx={{ color: 'rgba(255,255,255,0.5)', py: 4 }}>
                                             No experiences recorded yet. Click "Add Experience" to create one.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     paginatedExperiences.map((exp) => (
                                         <TableRow key={exp._id || exp.company} sx={{ '&:hover': { background: 'rgba(255,255,255,0.02)' } }}>
+                                            <TableCell sx={{ color: '#00FF41', fontFamily: 'Fira Code, monospace', fontWeight: 700 }}>#{exp.order || 1}</TableCell>
                                             <TableCell sx={{ color: '#fff', fontWeight: 600 }}>{exp.company}</TableCell>
                                             <TableCell sx={{ color: 'rgba(255,255,255,0.85)' }}>{exp.role}</TableCell>
                                             <TableCell sx={{ color: '#00FF41', fontFamily: 'Fira Code, monospace', fontSize: '0.78rem' }}>
@@ -243,10 +251,10 @@ const ManageExperiences = () => {
                                                 </Box>
                                             </TableCell>
                                             <TableCell align="right">
-                                                <IconButton size="small" onClick={() => handleOpenEdit(exp)} sx={{ color: '#00FF41', mr: 1 }}>
+                                                <IconButton disableRipple size="small" onClick={() => handleOpenEdit(exp)} sx={{ color: '#00FF41', mr: 1 }}>
                                                     <EditIcon fontSize="small" />
                                                 </IconButton>
-                                                <IconButton size="small" onClick={() => handleOpenDelete(exp)} sx={{ color: '#ff4444' }}>
+                                                <IconButton disableRipple size="small" onClick={() => handleOpenDelete(exp)} sx={{ color: '#ff4444' }}>
                                                     <DeleteIcon fontSize="small" />
                                                 </IconButton>
                                             </TableCell>
@@ -333,7 +341,21 @@ const ManageExperiences = () => {
                                 value={formData.order}
                                 onChange={(e) => setFormData({ ...formData, order: e.target.value })}
                                 size="small"
-                                sx={{ width: 120 }}
+                                sx={{ minWidth: 150 }}
+                                helperText={
+                                    conflictingExperience
+                                        ? `⚠️ #${formData.order} held by "${conflictingExperience.company}". Will shift.`
+                                        : formData.order
+                                        ? `✓ Available`
+                                        : ''
+                                }
+                                FormHelperTextProps={{
+                                    sx: {
+                                        color: conflictingExperience ? '#ffb74d' : '#00FF41',
+                                        fontFamily: 'Fira Code, monospace',
+                                        fontSize: '0.68rem',
+                                    },
+                                }}
                             />
                         </Box>
                         <TextField
@@ -356,13 +378,14 @@ const ManageExperiences = () => {
                         />
                     </DialogContent>
                     <DialogActions sx={{ p: 2.5, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        <Button onClick={() => setOpenDialog(false)} sx={{ color: 'rgba(255,255,255,0.6)' }} disabled={saving}>
+                        <Button disableRipple onClick={() => setOpenDialog(false)} sx={{ color: 'rgba(255,255,255,0.6)' }} disabled={saving}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             variant="contained"
                             disabled={saving}
+                            disableRipple
                             sx={{ background: '#00FF41', color: '#000', fontWeight: 700, '&:hover': { background: '#39FF14' } }}
                         >
                             {saving ? 'Saving...' : editingId ? 'Update Experience' : 'Create Experience'}

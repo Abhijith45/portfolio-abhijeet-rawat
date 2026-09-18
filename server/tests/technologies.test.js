@@ -93,4 +93,28 @@ describe('Technologies Integration Tests', () => {
         expect(res.status).toBe(404);
         expect(res.body.success).toBe(false);
     });
+
+    it('should auto-shift orders scoped to category when creating and updating technologies', async () => {
+        await Technology.deleteMany({});
+        const t1 = await Technology.create({ name: 'Vue', category: 'Frontend & UI', order: 1 });
+        const t2 = await Technology.create({ name: 'Angular', category: 'Frontend & UI', order: 2 });
+        const db1 = await Technology.create({ name: 'Postgres', category: 'Database & Cache', order: 1 });
+
+        // Insert at order 1 in 'Frontend & UI' -> only Vue & Angular shift; Postgres unaffected
+        const res = await request(app)
+            .post('/api/technologies')
+            .set('Authorization', `Bearer ${adminToken}`)
+            .send({ name: 'React', category: 'Frontend & UI', order: 1 });
+
+        expect(res.status).toBe(201);
+        expect(res.body.data.order).toBe(1);
+
+        const afterVue = await Technology.findById(t1._id);
+        const afterAngular = await Technology.findById(t2._id);
+        const afterPostgres = await Technology.findById(db1._id);
+
+        expect(afterVue.order).toBe(2);
+        expect(afterAngular.order).toBe(3);
+        expect(afterPostgres.order).toBe(1); // Unaffected
+    });
 });

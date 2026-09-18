@@ -23,7 +23,7 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             const [pRes, tRes, qRes, rRes] = await Promise.allSettled([
-                projectsApi.getAll(),
+                projectsApi.getAll({ all: 'true' }),
                 technologiesApi.getAll(),
                 queriesApi.getAll(),
                 reviewsApi.getAll(),

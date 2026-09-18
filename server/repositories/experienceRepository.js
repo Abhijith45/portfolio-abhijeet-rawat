@@ -31,6 +31,16 @@ class ExperienceRepository {
         }).lean();
     }
 
+    async findOne(query = {}, options = {}) {
+        let cursor = Experience.findOne(query);
+        if (options.sort) cursor = cursor.sort(options.sort);
+        return cursor.lean();
+    }
+
+    async updateMany(query, update) {
+        return Experience.updateMany(query, update);
+    }
+
     async deleteById(id) {
         return Experience.findByIdAndDelete(id).lean();
     }

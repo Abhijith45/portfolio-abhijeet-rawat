@@ -31,6 +31,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import CloseIcon from '@mui/icons-material/Close';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { projectsApi, apiCache } from '../../services/api';
 
 import Checkbox from '@mui/material/Checkbox';
@@ -49,6 +50,8 @@ const initialFormState = {
     uploadedImagePreview: '',
     engineeringOverview: '',
     isFeatured: true,
+    isVisible: true,
+    order: 1,
 };
 
 const ITEMS_PER_PAGE = 12;
@@ -91,7 +94,7 @@ const ManageProjects = () => {
     const fetchProjects = async () => {
         try {
             setLoading(true);
-            const res = await projectsApi.getAll();
+            const res = await projectsApi.getAll({ all: 'true' });
             if (res.data?.success) {
                 setProjects(res.data.data);
             }
@@ -106,8 +109,8 @@ const ManageProjects = () => {
         fetchProjects();
     }, []);
 
-    const handleOpenDialog = (project = null) => {
-        setStep(1);
+    const handleOpenDialog = (project = null, initialStep = 1) => {
+        setStep(initialStep);
         setFormErrors({});
         setGeneralError('');
         setUrlVerificationStatus(null);
@@ -125,10 +128,13 @@ const ManageProjects = () => {
                 uploadedImagePreview: project.imageURL || project.image || '',
                 engineeringOverview: project.engineeringOverview || project.overview || '',
                 isFeatured: project.isFeatured !== undefined ? project.isFeatured : project.featured !== false,
+                isVisible: project.isVisible !== undefined ? project.isVisible : project.visible !== false,
+                order: project.order !== undefined ? project.order : 1,
             });
         } else {
             setEditingProject(null);
-            setFormData(initialFormState);
+            const maxOrder = Math.max(0, ...projects.map((p) => Number(p.order) || 0));
+            setFormData({ ...initialFormState, order: maxOrder + 1 });
         }
         setOpenDialog(true);
     };
@@ -175,11 +181,18 @@ const ManageProjects = () => {
         if (!validateStep1()) return;
 
         const urlsToVerify = [];
-        if (formData.githubURL && formData.githubURL.trim()) {
-            urlsToVerify.push({ type: 'githubURL', label: 'GitHub URL', url: formData.githubURL.trim() });
+        const currentGithub = (formData.githubURL || '').trim();
+        const currentLive = (formData.liveURL || '').trim();
+
+        const originalGithub = editingProject ? (editingProject.githubURL || editingProject.github || '').trim() : null;
+        const originalLive = editingProject ? (editingProject.liveURL || editingProject.demo || '').trim() : null;
+
+        // Skip URL verification on edit if the URLs were not changed/updated
+        if (currentGithub && (!editingProject || currentGithub !== originalGithub)) {
+            urlsToVerify.push({ type: 'githubURL', label: 'GitHub URL', url: currentGithub });
         }
-        if (formData.liveURL && formData.liveURL.trim()) {
-            urlsToVerify.push({ type: 'liveURL', label: 'Live Demo URL', url: formData.liveURL.trim() });
+        if (currentLive && (!editingProject || currentLive !== originalLive)) {
+            urlsToVerify.push({ type: 'liveURL', label: 'Live Demo URL', url: currentLive });
         }
 
         if (urlsToVerify.length > 0) {
@@ -268,6 +281,8 @@ const ManageProjects = () => {
                 imageURL: formData.imageURL.trim(),
                 engineeringOverview: formData.engineeringOverview.trim(),
                 isFeatured: Boolean(formData.isFeatured),
+                isVisible: Boolean(formData.isVisible !== undefined ? formData.isVisible : true),
+                order: formData.order ? parseInt(formData.order, 10) : 1,
             };
 
             if (editingProject) {
@@ -348,6 +363,9 @@ const ManageProjects = () => {
     };
 
     const isUrlProvided = Boolean(formData.imageURL && formData.imageURL.trim().length > 0 && !formData.imageUploaded);
+    const conflictingProject = projects.find(
+        (p) => (!editingProject || p._id !== editingProject._id) && Number(p.order) === Number(formData.order)
+    );
 
     return (
         <Box>
@@ -448,6 +466,7 @@ const ManageProjects = () => {
                             const cardGithub = proj.githubURL || proj.github;
                             const cardLive = proj.liveURL || proj.demo;
                             const cardFeatured = proj.isFeatured !== undefined ? proj.isFeatured : proj.featured;
+                            const cardVisible = proj.isVisible !== undefined ? proj.isVisible : proj.visible !== false;
                             const isSelected = selectedIds.includes(proj._id);
 
                             return (
@@ -491,14 +510,87 @@ const ManageProjects = () => {
                                             />
                                         </Box>
 
-                                        {cardImage && (
-                                            <Box
-                                                component="img"
-                                                src={cardImage}
-                                                alt={proj.title}
-                                                sx={{ width: '100%', height: 160, objectFit: 'cover' }}
-                                            />
-                                        )}
+                                        {/* Persistent Image Container (Never Collapses) */}
+                                        <Box
+                                            sx={{
+                                                width: '100%',
+                                                height: 160,
+                                                position: 'relative',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            {cardImage ? (
+                                                <>
+                                                    <Box
+                                                        component="img"
+                                                        src={cardImage}
+                                                        alt={proj.title}
+                                                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    />
+                                                    <Tooltip title="Update / Change Image" arrow>
+                                                        <IconButton
+                                                            size="small"
+                                                            disableRipple
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOpenDialog(proj, 2);
+                                                            }}
+                                                            aria-label="Change project image"
+                                                            sx={{
+                                                                position: 'absolute',
+                                                                top: 8,
+                                                                right: 8,
+                                                                zIndex: 2,
+                                                                background: 'rgba(0, 0, 0, 0.75)',
+                                                                backdropFilter: 'blur(4px)',
+                                                                color: '#00FF41',
+                                                                border: '1px solid rgba(0, 255, 65, 0.3)',
+                                                                p: 0.7,
+                                                                '&:hover': {
+                                                                    background: 'rgba(0, 0, 0, 0.95)',
+                                                                    borderColor: '#00FF41',
+                                                                    boxShadow: '0 0 10px rgba(0, 255, 65, 0.4)',
+                                                                },
+                                                            }}
+                                                        >
+                                                            <EditIcon sx={{ fontSize: 16 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </>
+                                            ) : (
+                                                <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    disableRipple
+                                                    startIcon={<AddPhotoAlternateIcon sx={{ fontSize: 18 }} />}
+                                                    onClick={() => handleOpenDialog(proj, 2)}
+                                                    sx={{
+                                                        color: 'rgba(255, 255, 255, 0.7)',
+                                                        borderColor: 'rgba(255, 255, 255, 0.15)',
+                                                        textTransform: 'none',
+                                                        fontFamily: 'Fira Code, monospace',
+                                                        fontSize: '0.75rem',
+                                                        px: 2,
+                                                        py: 0.8,
+                                                        background: 'rgba(0, 0, 0, 0.4)',
+                                                        backdropFilter: 'blur(4px)',
+                                                        '&:hover': {
+                                                            borderColor: '#00FF41',
+                                                            color: '#00FF41',
+                                                            background: 'rgba(0, 255, 65, 0.05)',
+                                                            boxShadow: '0 0 10px rgba(0, 255, 65, 0.2)',
+                                                        },
+                                                    }}
+                                                >
+                                                    Add Image
+                                                </Button>
+                                            )}
+                                        </Box>
                                         <CardContent sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                             <Box>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -507,6 +599,34 @@ const ManageProjects = () => {
                                                             {proj.title}
                                                         </Typography>
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5}}>
+                                                            <Chip
+                                                                label={`#${proj.order || 1}`}
+                                                                size="small"
+                                                                sx={{
+                                                                    background: 'rgba(255, 255, 255, 0.05)',
+                                                                    color: '#00FF41',
+                                                                    border: '1px solid rgba(0, 255, 65, 0.25)',
+                                                                    fontWeight: 700,
+                                                                    fontFamily: 'Fira Code, monospace',
+                                                                    fontSize: '0.62rem',
+                                                                    height: 20,
+                                                                }}
+                                                            />
+                                                            {!cardVisible && (
+                                                                <Chip
+                                                                    label="HIDDEN"
+                                                                    size="small"
+                                                                    sx={{
+                                                                        background: 'rgba(255, 107, 107, 0.15)',
+                                                                        color: '#ff6b6b',
+                                                                        border: '1px solid rgba(255, 107, 107, 0.3)',
+                                                                        fontWeight: 800,
+                                                                        fontFamily: 'Fira Code, monospace',
+                                                                        fontSize: '0.62rem',
+                                                                        height: 20,
+                                                                    }}
+                                                                />
+                                                            )}
                                                             {cardFeatured && (
                                                                 <Chip
                                                                     icon={<StarIcon sx={{ '&&': { color: '#000', fontSize: 14 } }} />}
@@ -789,6 +909,30 @@ const ManageProjects = () => {
                                 fullWidth
                                 size="small"
                             />
+
+                            <TextField
+                                label="Display / Sort Order"
+                                type="number"
+                                placeholder="1"
+                                value={formData.order}
+                                onChange={(e) => setFormData({ ...formData, order: e.target.value })}
+                                fullWidth
+                                size="small"
+                                helperText={
+                                    conflictingProject
+                                        ? `⚠️ Order #${formData.order} is currently held by "${conflictingProject.title}". Saving will shift it down.`
+                                        : formData.order
+                                        ? `✓ Position #${formData.order} is available.`
+                                        : 'Enter sequence display position'
+                                }
+                                FormHelperTextProps={{
+                                    sx: {
+                                        color: conflictingProject ? '#ffb74d' : '#00FF41',
+                                        fontFamily: 'Fira Code, monospace',
+                                        fontSize: '0.72rem',
+                                    },
+                                }}
+                            />
                         </>
                     )}
 
@@ -895,30 +1039,59 @@ const ManageProjects = () => {
                                 helperText="Displayed in the detailed inspection modal"
                             />
 
-                            {/* Featured Switch */}
-                            <Box sx={{ p: 1.5, background: 'rgba(0,255,65,0.03)', border: '1px solid rgba(0,255,65,0.15)', borderRadius: '6px' }}>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={formData.isFeatured}
-                                            onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                                            sx={{
-                                                '& .Mui-checked': { color: '#00FF41' },
-                                                '& .Mui-checked + .MuiSwitch-track': { backgroundColor: '#00FF41' },
-                                            }}
-                                        />
-                                    }
-                                    label={
-                                        <Box>
-                                            <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#fff' }}>
-                                                Feature on Home Page
-                                            </Typography>
-                                            <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)' }}>
-                                                When enabled, this project is highlighted on the public homepage selected works.
-                                            </Typography>
-                                        </Box>
-                                    }
-                                />
+                            {/* Switches Grid */}
+                            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
+                                {/* Public Visibility Switch */}
+                                <Box sx={{ p: 1.5, background: 'rgba(0,255,65,0.03)', border: '1px solid rgba(0,255,65,0.15)', borderRadius: '6px' }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={formData.isVisible !== false}
+                                                onChange={(e) => setFormData({ ...formData, isVisible: e.target.checked })}
+                                                sx={{
+                                                    '& .Mui-checked': { color: '#00FF41' },
+                                                    '& .Mui-checked + .MuiSwitch-track': { backgroundColor: '#00FF41' },
+                                                }}
+                                            />
+                                        }
+                                        label={
+                                            <Box>
+                                                <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#fff' }}>
+                                                    Public Visibility
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)' }}>
+                                                    Visible on public portfolio.
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
+                                </Box>
+
+                                {/* Featured Switch */}
+                                <Box sx={{ p: 1.5, background: 'rgba(0,255,65,0.03)', border: '1px solid rgba(0,255,65,0.15)', borderRadius: '6px' }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={formData.isFeatured}
+                                                onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                                                sx={{
+                                                    '& .Mui-checked': { color: '#00FF41' },
+                                                    '& .Mui-checked + .MuiSwitch-track': { backgroundColor: '#00FF41' },
+                                                }}
+                                            />
+                                        }
+                                        label={
+                                            <Box>
+                                                <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#fff' }}>
+                                                    Feature on Home
+                                                </Typography>
+                                                <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)' }}>
+                                                    Selected Works highlight.
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
+                                </Box>
                             </Box>
                         </>
                     )}

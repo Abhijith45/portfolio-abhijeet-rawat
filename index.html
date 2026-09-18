@@ -106,16 +106,30 @@
       "author": {
         "@type": "Person",
         "name": "Abhijeet Rawat"
-      },
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://abhijeet-rawat-portfolio.netlify.app/all-projects?q={search_term_string}",
-        "query-input": "required name=search_term_string"
       }
     }
     </script>
+
+    <!-- ── Early Dark Theme Background & Instant Inlined Vector Cursor ──── -->
+    <style>
+      :root {
+        --cursor-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28' fill='none'%3E%3Cdefs%3E%3Cfilter id='s' x='-20%25' y='-20%25' width='150%25' height='150%25'%3E%3CfeDropShadow dx='0' dy='1' stdDeviation='1.2' flood-color='%23000000' flood-opacity='0.75'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3.5 3.5 L24.5 12.8 C25.6 13.3 25.4 14.8 24.2 15.2 L15.2 15.8 L14.6 24.8 C14.2 26 12.7 26.1 12.2 25.1 Z' fill='%23FFFFFF' stroke='%23050505' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round' filter='url(%23s)'/%3E%3Cpath d='M6.5 7 L18.5 12.5 L13.2 13.2 L12.5 18.5 Z' fill='%23E2E8F0' opacity='0.5'/%3E%3C/svg%3E");
+        --cursor-pointer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28' fill='none'%3E%3Cdefs%3E%3Cfilter id='g' x='-30%25' y='-30%25' width='160%25' height='160%25'%3E%3CfeDropShadow dx='0' dy='0' stdDeviation='2.5' flood-color='%2300FF41' flood-opacity='0.85'/%3E%3CfeDropShadow dx='0' dy='1' stdDeviation='1.2' flood-color='%23000000' flood-opacity='0.75'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3.5 3.5 L24.5 12.8 C25.6 13.3 25.4 14.8 24.2 15.2 L15.2 15.8 L14.6 24.8 C14.2 26 12.7 26.1 12.2 25.1 Z' fill='%2300FF41' stroke='%23050505' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round' filter='url(%23g)'/%3E%3Cpath d='M6.5 7 L18.5 12.5 L13.2 13.2 L12.5 18.5 Z' fill='%23FFFFFF' opacity='0.6'/%3E%3C/svg%3E");
+      }
+
+      html, body, #root {
+        background-color: #050505 !important;
+        color: #ffffff;
+        min-height: 100vh;
+        cursor: var(--cursor-default) 3 3, auto !important;
+      }
+
+      a, button, [role="button"], select, input[type="submit"], input[type="button"], .clickable {
+        cursor: var(--cursor-pointer) 3 3, pointer !important;
+      }
+    </style>
   </head>
-  <body>
+  <body style="background-color: #050505; color: #ffffff; margin: 0; cursor: var(--cursor-default) 3 3, auto;">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

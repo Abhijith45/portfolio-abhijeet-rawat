@@ -57,6 +57,16 @@ class ExperienceService {
 
     async createExperience(body) {
         const { company, role, period, active, location, responsibilities, skills, order } = body;
+
+        let targetOrder;
+        if (order !== undefined && order !== null && order !== '' && Number(order) > 0) {
+            targetOrder = Math.max(1, parseInt(order, 10) || 1);
+            await experienceRepository.updateMany({ order: { $gte: targetOrder } }, { $inc: { order: 1 } });
+        } else {
+            const maxItem = await experienceRepository.findOne({}, { sort: { order: -1 } });
+            targetOrder = (maxItem && typeof maxItem.order === 'number' && maxItem.order >= 1) ? maxItem.order + 1 : 1;
+        }
+
         const experience = await experienceRepository.create({
             company,
             role,
@@ -69,7 +79,7 @@ class ExperienceService {
             skills: Array.isArray(skills)
                 ? skills
                 : (skills || '').split(',').map((s) => s.trim()).filter(Boolean),
-            order: Number(order) || 0,
+            order: targetOrder,
         });
 
         serverCache.clearPattern('experiences');
@@ -79,6 +89,11 @@ class ExperienceService {
     }
 
     async updateExperience(id, body) {
+        const existing = await experienceRepository.findById(id);
+        if (!existing) {
+            throw new Error('Experience not found');
+        }
+
         const { company, role, period, active, location, responsibilities, skills, order } = body;
         const updateData = {};
         if (company !== undefined) updateData.company = company;
@@ -96,12 +111,27 @@ class ExperienceService {
                 ? skills
                 : skills.split(',').map((s) => s.trim()).filter(Boolean);
         }
-        if (order !== undefined) updateData.order = Number(order);
+
+        if (order !== undefined && order !== null && order !== '') {
+            const oldOrder = existing.order || 1;
+            const newOrder = Math.max(1, parseInt(order, 10) || 1);
+            if (newOrder !== oldOrder) {
+                if (newOrder < oldOrder) {
+                    await experienceRepository.updateMany(
+                        { _id: { $ne: id }, order: { $gte: newOrder, $lt: oldOrder } },
+                        { $inc: { order: 1 } }
+                    );
+                } else {
+                    await experienceRepository.updateMany(
+                        { _id: { $ne: id }, order: { $gt: oldOrder, $lte: newOrder } },
+                        { $inc: { order: -1 } }
+                    );
+                }
+                updateData.order = newOrder;
+            }
+        }
 
         const experience = await experienceRepository.updateById(id, updateData);
-        if (!experience) {
-            throw new Error('Experience not found');
-        }
 
         serverCache.clearPattern('experiences');
         const newVersion = serverCache.incrementCacheVersion();
@@ -110,9 +140,15 @@ class ExperienceService {
     }
 
     async deleteExperience(id) {
-        const experience = await experienceRepository.deleteById(id);
-        if (!experience) {
+        const existing = await experienceRepository.findById(id);
+        if (!existing) {
             throw new Error('Experience not found');
+        }
+
+        await experienceRepository.deleteById(id);
+
+        if (typeof existing.order === 'number' && existing.order >= 1) {
+            await experienceRepository.updateMany({ order: { $gt: existing.order } }, { $inc: { order: -1 } });
         }
 
         serverCache.clearPattern('experiences');

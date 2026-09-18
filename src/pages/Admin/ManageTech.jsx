@@ -14,6 +14,7 @@ import {
     MenuItem,
     CircularProgress,
     Alert,
+    Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -40,7 +41,7 @@ const ManageTech = () => {
         category: 'Frontend & UI',
         icon: '',
         proficiency: 'Proficient',
-        order: 0,
+        order: 1,
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -68,6 +69,11 @@ const ManageTech = () => {
         fetchTech();
     }, []);
 
+    const getCategoryMaxOrder = (cat) => {
+        const catTechs = technologies.filter((t) => t.category === cat);
+        return Math.max(0, ...catTechs.map((t) => Number(t.order) || 0));
+    };
+
     const handleOpenDialog = (tech = null) => {
         if (tech) {
             setEditingTech(tech);
@@ -76,16 +82,17 @@ const ManageTech = () => {
                 category: tech.category,
                 icon: tech.icon || '',
                 proficiency: tech.proficiency || 'Proficient',
-                order: tech.order || 0,
+                order: tech.order !== undefined ? tech.order : 1,
             });
         } else {
             setEditingTech(null);
+            const defaultCat = 'Frontend & UI';
             setFormData({
                 name: '',
-                category: 'Frontend & UI',
+                category: defaultCat,
                 icon: '',
                 proficiency: 'Proficient',
-                order: technologies.length + 1,
+                order: getCategoryMaxOrder(defaultCat) + 1,
             });
         }
         setError('');
@@ -143,6 +150,12 @@ const ManageTech = () => {
         return acc;
     }, {});
 
+    const conflictingTech = technologies.find(
+        (t) => (!editingTech || t._id !== editingTech._id) &&
+               t.category === formData.category &&
+               Number(t.order) === Number(formData.order)
+    );
+
     return (
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -156,6 +169,7 @@ const ManageTech = () => {
                 </Box>
                 <Button
                     variant="contained"
+                    disableRipple
                     startIcon={<AddIcon />}
                     onClick={() => handleOpenDialog()}
                     sx={{ background: '#00FF41', color: '#000', fontWeight: 700, '&:hover': { background: '#39FF14' } }}
@@ -223,6 +237,18 @@ const ManageTech = () => {
                                                     <Typography sx={{ color: '#fff', fontSize: '0.88rem', fontWeight: 500 }}>
                                                         {tech.name}
                                                     </Typography>
+                                                    <Chip
+                                                        label={`#${tech.order || 1}`}
+                                                        size="small"
+                                                        sx={{
+                                                            height: 18,
+                                                            fontSize: '0.62rem',
+                                                            background: 'rgba(0,255,65,0.06)',
+                                                            color: '#00FF41',
+                                                            border: '1px solid rgba(0,255,65,0.2)',
+                                                            fontFamily: 'Fira Code, monospace',
+                                                        }}
+                                                    />
                                                     {tech.icon && (
                                                         <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', fontFamily: 'Fira Code, monospace' }}>
                                                             ({tech.icon})
@@ -232,6 +258,7 @@ const ManageTech = () => {
                                                 <Box>
                                                     <IconButton
                                                         size="small"
+                                                        disableRipple
                                                         onClick={() => handleOpenDialog(tech)}
                                                         sx={{ color: 'rgba(255,255,255,0.6)', '&:hover': { color: '#00FF41' } }}
                                                     >
@@ -239,6 +266,7 @@ const ManageTech = () => {
                                                     </IconButton>
                                                     <IconButton
                                                         size="small"
+                                                        disableRipple
                                                         onClick={() => handleOpenDelete(tech)}
                                                         sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: '#ff6b6b' } }}
                                                     >
@@ -281,7 +309,14 @@ const ManageTech = () => {
                             select
                             label="Category"
                             value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                            onChange={(e) => {
+                                const newCat = e.target.value;
+                                setFormData({
+                                    ...formData,
+                                    category: newCat,
+                                    order: editingTech ? formData.order : getCategoryMaxOrder(newCat) + 1,
+                                });
+                            }}
                             fullWidth
                             size="small"
                         >
@@ -306,16 +341,25 @@ const ManageTech = () => {
                             value={formData.order}
                             onChange={(e) => setFormData({ ...formData, order: e.target.value })}
                             size="small"
+                            helperText={
+                                conflictingTech
+                                    ? `Order #${formData.order} in '${formData.category}' is assigned to "${conflictingTech.name}". Saving will shift existing items down.`
+                                    : `Category position (Lower appears first).`
+                            }
+                            FormHelperTextProps={{
+                                sx: { color: conflictingTech ? '#ffb703' : 'rgba(255,255,255,0.5)', fontSize: '0.72rem' }
+                            }}
                         />
                     </DialogContent>
                     <DialogActions sx={{ p: 2 }}>
-                        <Button onClick={handleCloseDialog} sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                        <Button disableRipple onClick={handleCloseDialog} sx={{ color: 'rgba(255,255,255,0.6)' }}>
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             variant="contained"
                             disabled={submitting}
+                            disableRipple
                             sx={{ background: '#00FF41', color: '#000', fontWeight: 700 }}
                         >
                             {submitting ? 'Saving...' : editingTech ? 'Update' : 'Add'}

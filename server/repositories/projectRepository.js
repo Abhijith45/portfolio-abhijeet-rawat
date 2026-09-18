@@ -29,6 +29,17 @@ class ProjectRepository {
         }).lean();
     }
 
+    async findOne(query = {}, options = {}) {
+        let cursor = Project.findOne(query);
+        if (options.sort) cursor = cursor.sort(options.sort);
+        if (options.select) cursor = cursor.select(options.select);
+        return cursor.lean();
+    }
+
+    async updateMany(query, update) {
+        return Project.updateMany(query, update);
+    }
+
     async deleteById(id) {
         return Project.findByIdAndDelete(id).lean();
     }
